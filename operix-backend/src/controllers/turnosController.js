@@ -295,11 +295,45 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
   return R * c; // distancia en metros
 }
 
+const estadoBreak = async (req, res) => {
+  try {
+    const usuario_id = req.usuario.id;
+
+    const [turno] = await pool.query(
+      `SELECT id FROM turnos WHERE usuario_id = ? AND estado = 'activo'`,
+      [usuario_id]
+    );
+
+    if (turno.length === 0) {
+      return res.json({ breakActivo: false });
+    }
+
+    const [breakAbierto] = await pool.query(
+      `SELECT id, inicio FROM breaks WHERE turno_id = ? AND fin IS NULL`,
+      [turno[0].id]
+    );
+
+    if (breakAbierto.length === 0) {
+      return res.json({ breakActivo: false });
+    }
+
+    res.json({
+      breakActivo: true,
+      horaInicio: new Date(breakAbierto[0].inicio).toLocaleTimeString('es-EC')
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+};
+
 module.exports = {
   registrarEntrada,
   registrarSalida,
   iniciarBreak,
   finalizarBreak,
   registrarNovedad,
-  obtenerHistorial
+  obtenerHistorial,
+  estadoBreak
 };

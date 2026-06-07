@@ -8,11 +8,9 @@ const {
   iniciarBreak,
   finalizarBreak,
   registrarNovedad,
-  obtenerHistorial
+  obtenerHistorial,
+  estadoBreak
 } = require('../controllers/turnosController');
-
-// Todas las rutas requieren token JWT
-// verificarToken actúa como guardia antes de cada endpoint
 
 router.post('/entrada',       verificarToken, upload.single('foto'), registrarEntrada);
 router.post('/salida',        verificarToken, upload.single('foto'), registrarSalida);
@@ -20,5 +18,6 @@ router.post('/break/inicio',  verificarToken, iniciarBreak);
 router.post('/break/fin',     verificarToken, finalizarBreak);
 router.post('/novedad',       verificarToken, upload.single('foto'), registrarNovedad);
 router.get('/historial',      verificarToken, obtenerHistorial);
+router.get('/break/estado',   verificarToken, estadoBreak);
 
 module.exports = router;
