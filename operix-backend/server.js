@@ -1,3 +1,8 @@
+const pool = require('./src/config/db');
+pool.query('SELECT DATABASE() as db')
+  .then(([rows]) => console.log('Conectado a BD:', rows[0].db))
+  .catch(err => console.log('Error BD:', err.message));
+
 // Librerías necesarias
 const express = require('express');
 const cors    = require('cors');
@@ -13,6 +18,9 @@ app.use(express.json()); // Permite leer JSON en el body de las peticiones
 
 // Importa las rutas
 const authRoutes = require('./src/routes/authRoutes');
+
+const turnosRoutes = require('./src/routes/turnosRoutes');
+app.use('/api/turnos', turnosRoutes);
 
 // Registra las rutas con el prefijo /api
 app.use('/api/auth', authRoutes);
