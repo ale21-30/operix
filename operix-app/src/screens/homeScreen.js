@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   View, Text, TouchableOpacity,
-  StyleSheet, ScrollView, Alert
+  StyleSheet, ScrollView, Alert, Image
 } from 'react-native';
 import { eliminarToken } from '../services/api';
 
@@ -25,7 +25,6 @@ export default function HomeScreen({ navigation }) {
     );
   };
 
-  // Botones del menú principal
   const opciones = [
     { titulo: 'Registrar Entrada', icono: '🟢', pantalla: 'Entrada', color: '#1D9E75' },
     { titulo: 'Registrar Salida',  icono: '🔴', pantalla: 'Salida',  color: '#E24B4A' },
@@ -36,9 +35,13 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <ScrollView style={styles.container}>
-      {/* Saludo */}
       <View style={styles.bienvenida}>
-        <Text style={styles.hola}>¡Bienvenida! 👋</Text>
+        <Image
+          source={require('../../assets/icono.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Text style={styles.hola}>¡Bienvenido/a! 👋</Text>
         <Text style={styles.fecha}>
           {new Date().toLocaleDateString('es-EC', {
             weekday: 'long', day: 'numeric', month: 'long'
@@ -46,7 +49,6 @@ export default function HomeScreen({ navigation }) {
         </Text>
       </View>
 
-      {/* Menú de opciones */}
       <View style={styles.grid}>
         {opciones.map((op, i) => (
           <TouchableOpacity
@@ -60,7 +62,6 @@ export default function HomeScreen({ navigation }) {
         ))}
       </View>
 
-      {/* Botón logout */}
       <TouchableOpacity style={styles.logout} onPress={handleLogout}>
         <Text style={styles.logoutTexto}>Cerrar sesión</Text>
       </TouchableOpacity>
@@ -76,7 +77,13 @@ const styles = StyleSheet.create({
   bienvenida: {
     backgroundColor: '#04342C',
     padding: 24,
-    paddingTop: 32,
+    paddingTop: 48,
+    alignItems: 'center',
+  },
+  logo: {
+    width: 70,
+    height: 70,
+    marginBottom: 12,
   },
   hola: {
     fontSize: 22,

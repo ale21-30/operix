@@ -12,23 +12,15 @@ export default function LoginScreen({ navigation }) {
   const [cargando, setCargando] = useState(false);
 
   const handleLogin = async () => {
-    // Valida que los campos no estén vacíos
     if (!email || !password) {
       Alert.alert('Error', 'Por favor completa todos los campos');
       return;
     }
-
     setCargando(true);
     try {
-      // Llama al backend
       const respuesta = await login(email, password);
-
-      // Guarda el token en el celular
       await guardarToken(respuesta.token);
-
-      // Navega al Home
       navigation.replace('Home');
-
     } catch (error) {
       Alert.alert('Error', error.message || 'Credenciales incorrectas');
     } finally {
@@ -41,16 +33,15 @@ export default function LoginScreen({ navigation }) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      {/* Logo y título */}
       <View style={styles.header}>
-        <View style={styles.logoCircle}>
-          <Text style={styles.logoText}>O</Text>
-        </View>
-        <Text style={styles.titulo}>Operix</Text>
+        <Image
+          source={require('../../assets/icono.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
         <Text style={styles.subtitulo}>Control de Asistencia</Text>
       </View>
 
-      {/* Formulario */}
       <View style={styles.form}>
         <Text style={styles.label}>Correo electrónico</Text>
         <TextInput
@@ -102,25 +93,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 48,
   },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
+  logo: {
+    width: 120,
+    height: 120,
     marginBottom: 16,
-  },
-  logoText: {
-    fontSize: 40,
-    fontWeight: 'bold',
-    color: '#04342C',
-  },
-  titulo: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#fff',
-    letterSpacing: 2,
   },
   subtitulo: {
     fontSize: 14,
