@@ -2,7 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 
 // URL base del backend — mientras desarrollas usa tu IP local
 // Cambia esta IP por la IP de tu computadora en la red WiFi
-const BASE_URL = 'http://192.168.100.109:3000/api';
+export const BASE_URL = 'http://192.168.100.109:3000/api';
 // ↑ Luego te explico cómo encontrar tu IP exacta
 
 // ─────────────────────────────────────────
