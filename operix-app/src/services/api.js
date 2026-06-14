@@ -2,7 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 
 // URL base del backend — mientras desarrollas usa tu IP local
 // Cambia esta IP por la IP de tu computadora en la red WiFi
-const BASE_URL = 'http://192.168.100.17:3000/api';
+const BASE_URL = 'http://192.168.100.109:3000/api';
 // ↑ Luego te explico cómo encontrar tu IP exacta
 
 // ─────────────────────────────────────────
@@ -30,43 +30,44 @@ export const eliminarToken = async () => {
 // Función principal para hacer peticiones al backend
 // ─────────────────────────────────────────
 export const apiRequest = async (endpoint, method = 'GET', body = null, isFormData = false) => {
-  
-  // Obtiene el token guardado
   const token = await obtenerToken();
 
-  // Configura los headers de la petición
   const headers = {};
-  
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  
-  // Si no es FormData, envía JSON
   if (!isFormData) {
     headers['Content-Type'] = 'application/json';
   }
 
-  // Configura la petición
-  const config = {
-    method,
-    headers,
-  };
-
-  // Agrega el body si existe
+  const config = { method, headers };
   if (body) {
     config.body = isFormData ? body : JSON.stringify(body);
   }
 
-  // Hace la petición al backend
-  const response = await fetch(`${BASE_URL}${endpoint}`, config);
-  const data = await response.json();
+  try {
+    const response = await fetch(`${BASE_URL}${endpoint}`, config);
+    const data = await response.json();
 
-  // Si el servidor responde con error, lo lanza
-  if (!response.ok) {
-    throw new Error(data.error || 'Error del servidor');
+    // Token expirado — elimina sesión automáticamente
+    if (response.status === 401 || response.status === 403) {
+      await eliminarToken();
+      throw new Error('Sesión expirada. Por favor inicia sesión de nuevo.');
+    }
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Error del servidor');
+    }
+
+    return data;
+
+  } catch (error) {
+    // Si es error de red
+    if (error.message === 'Network request failed' || error.message.includes('timed out')) {
+      throw new Error('Sin conexión al servidor. Verifica tu WiFi.');
+    }
+    throw error;
   }
-
-  return data;
 };
 
 // ─────────────────────────────────────────
