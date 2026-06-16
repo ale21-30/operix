@@ -22,6 +22,10 @@ const authRoutes = require('./src/routes/authRoutes');
 const turnosRoutes = require('./src/routes/turnosRoutes');
 app.use('/api/turnos', turnosRoutes);
 
+// Importa las rutas de admin 
+const adminRoutes = require('./src/routes/adminRoutes');
+app.use('/api/admin', adminRoutes);
+
 // Registra las rutas con el prefijo /api
 app.use('/api/auth', authRoutes);
 
