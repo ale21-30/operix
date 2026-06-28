@@ -8,6 +8,7 @@ import TurnosPage   from './pages/TurnosPage';
 import EmpleadosPage from './pages/EmpleadosPage';
 import SedesPage    from './pages/SedesPage';
 import Layout       from './components/Layout';
+import AnalyticsPage from './pages/AnalyticsPage';
 
 function RutaProtegida({ children }) {
   const { usuario, cargando } = useAuth();
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="turnos"   element={<TurnosPage />} />
             <Route path="empleados" element={<EmpleadosPage />} />
             <Route path="sedes"    element={<SedesPage />} />
+            <Route path="analytics" element={<AnalyticsPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

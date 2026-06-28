@@ -1,0 +1,9 @@
+pandas
+scikit-learn
+matplotlib
+seaborn
+plotly
+flask
+flask-cors
+mysql-connector-python
+numpy

@@ -17,6 +17,7 @@ export default function Layout() {
     { path: '/turnos',    label: 'Turnos',     icono: '🕐' },
     { path: '/empleados', label: 'Empleados',  icono: '👥' },
     { path: '/sedes',     label: 'Sedes',      icono: '📍' },
+     { path: '/analytics',  label: 'Analítica ML', icono: '🤖' }, 
   ];
 
   return (
