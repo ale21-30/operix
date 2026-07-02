@@ -7,9 +7,10 @@ import {
 import { login, guardarToken } from '../services/api';
 
 export default function LoginScreen({ navigation }) {
-  const [email,    setEmail]    = useState('');
-  const [password, setPassword] = useState('');
-  const [cargando, setCargando] = useState(false);
+  const [email,       setEmail]       = useState('');
+  const [password,    setPassword]    = useState('');
+  const [cargando,    setCargando]    = useState(false);
+  const [verPassword, setVerPassword] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -18,7 +19,7 @@ export default function LoginScreen({ navigation }) {
     }
     setCargando(true);
     try {
-      const respuesta = await login(email, password);
+      const respuesta = await login(email.trim().toLowerCase(), password);
       await guardarToken(respuesta.token);
       navigation.replace('Home');
     } catch (error) {
@@ -35,7 +36,7 @@ export default function LoginScreen({ navigation }) {
     >
       <View style={styles.header}>
         <Image
-          source={require('../../assets/icono.png')}
+          source={require('../../assets/icon.png')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -52,17 +53,28 @@ export default function LoginScreen({ navigation }) {
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
+          autoCorrect={false}
         />
 
         <Text style={styles.label}>Contraseña</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="••••••••"
-          placeholderTextColor="#999"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+        <View style={styles.passwordRow}>
+          <TextInput
+            style={styles.inputPassword}
+            placeholder="••••••••"
+            placeholderTextColor="#999"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!verPassword}
+          />
+          <TouchableOpacity
+            style={styles.ojito}
+            onPress={() => setVerPassword(!verPassword)}
+          >
+            <Text style={styles.ojitoTexto}>
+              {verPassword ? '🙈' : '👁️'}
+            </Text>
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity
           style={[styles.boton, cargando && styles.botonDeshabilitado]}
@@ -76,8 +88,6 @@ export default function LoginScreen({ navigation }) {
           )}
         </TouchableOpacity>
       </View>
-
-      <Text style={styles.footer}>v1.0.0 — Proyecto de Grado</Text>
     </KeyboardAvoidingView>
   );
 }
@@ -125,6 +135,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E0E0E0',
   },
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    marginBottom: 16,
+  },
+  inputPassword: {
+    flex: 1,
+    padding: 14,
+    fontSize: 15,
+    color: '#222',
+  },
+  ojito: {
+    padding: 14,
+  },
+  ojitoTexto: {
+    fontSize: 18,
+  },
   boton: {
     backgroundColor: '#04342C',
     borderRadius: 8,
@@ -139,11 +170,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  footer: {
-    textAlign: 'center',
-    color: '#9FE1CB',
-    fontSize: 12,
-    marginTop: 32,
   },
 });

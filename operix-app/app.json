@@ -20,7 +20,8 @@
         "foregroundImage": "./assets/icono.png",
         "backgroundColor": "#04342C"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.ale_2130.operixapp"
     },
     "web": {
       "favicon": "./assets/icono.png"
