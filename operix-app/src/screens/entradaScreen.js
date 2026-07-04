@@ -142,43 +142,54 @@ export default function EntradaScreen({ navigation }) {
           Selecciona tu sede, toma una foto y registra tu llegada.
         </Text>
 
-        {/* Selector de sede */}
-        <View style={styles.infoBox}>
-          <Text style={styles.infoTitulo}>📍 Selecciona tu sede</Text>
-          {cargandoSedes ? (
-            <ActivityIndicator size="small" color="#04342C" style={{ marginTop: 8 }} />
-          ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
-              {sedes.map((sede) => (
-                <TouchableOpacity
-                  key={sede.id}
-                  onPress={() => setSedeSeleccionada(sede)}
-                  style={{
-                    padding: 10,
-                    marginRight: 8,
-                    borderRadius: 8,
-                    borderWidth: 2,
-                    borderColor: sedeSeleccionada?.id === sede.id ? '#04342C' : '#E0E0E0',
-                    backgroundColor: sedeSeleccionada?.id === sede.id ? '#E1F5EE' : '#F5F5F5',
-                  }}
-                >
-                  <Text style={{
-                    fontSize: 12,
-                    fontWeight: sedeSeleccionada?.id === sede.id ? '700' : '400',
-                    color: sedeSeleccionada?.id === sede.id ? '#04342C' : '#666',
-                  }}>
-                    {sede.nombre}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+{/* Selector de sede */}
+<View style={styles.infoBox}>
+  <Text style={styles.infoTitulo}>📍 Selecciona tu sede</Text>
+  {cargandoSedes ? (
+    <ActivityIndicator size="small" color="#04342C" style={{ marginTop: 8 }} />
+  ) : sedes.length === 0 ? (
+    <Text style={{ color: '#888', marginTop: 8, fontSize: 13 }}>
+      No hay sedes disponibles
+    </Text>
+  ) : (
+    <View style={{ marginTop: 8 }}>
+      {sedes.map((sede) => (
+        <TouchableOpacity
+          key={sede.id}
+          onPress={() => setSedeSeleccionada(sede)}
+          style={{
+            padding: 12,
+            marginBottom: 6,
+            borderRadius: 8,
+            borderWidth: 2,
+            borderColor: sedeSeleccionada?.id === sede.id ? '#04342C' : '#E0E0E0',
+            backgroundColor: sedeSeleccionada?.id === sede.id ? '#E1F5EE' : '#F9F9F9',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Text style={{
+            fontSize: 13,
+            fontWeight: sedeSeleccionada?.id === sede.id ? '700' : '400',
+            color: sedeSeleccionada?.id === sede.id ? '#04342C' : '#444',
+            flex: 1,
+          }}>
+            {sede.nombre}
+          </Text>
+          {sedeSeleccionada?.id === sede.id && (
+            <Text style={{ color: '#04342C', fontSize: 16 }}>✓</Text>
           )}
-          {sedeSeleccionada && (
-            <Text style={{ fontSize: 11, color: '#888', marginTop: 6 }}>
-              {sedeSeleccionada.direccion}
-            </Text>
-          )}
-        </View>
+        </TouchableOpacity>
+      ))}
+    </View>
+  )}
+  {sedeSeleccionada && (
+    <Text style={{ fontSize: 11, color: '#888', marginTop: 4 }}>
+      📍 {sedeSeleccionada.direccion}
+    </Text>
+  )}
+</View>
 
         {/* GPS */}
         <View style={[
