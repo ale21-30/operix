@@ -5,20 +5,36 @@ import {
 } from 'react-native';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
-import { registrarEntrada } from '../services/api';
+import { BASE_URL, obtenerToken, apiRequest } from '../services/api';
 
 export default function EntradaScreen({ navigation }) {
-  const [cargando,    setCargando]    = useState(false);
-  const [ubicacion,   setUbicacion]   = useState(null);
-  const [cargandoGPS, setCargandoGPS] = useState(true);
-  const [errorGPS,    setErrorGPS]    = useState(null);
-  const [foto,        setFoto]        = useState(null);
-
-  const SEDE_ID = 1;
+  const [cargando,      setCargando]      = useState(false);
+  const [ubicacion,     setUbicacion]     = useState(null);
+  const [cargandoGPS,   setCargandoGPS]   = useState(true);
+  const [errorGPS,      setErrorGPS]      = useState(null);
+  const [foto,          setFoto]          = useState(null);
+  const [sedes,         setSedes]         = useState([]);
+  const [sedeSeleccionada, setSedeSeleccionada] = useState(null);
+  const [cargandoSedes, setCargandoSedes] = useState(true);
 
   useEffect(() => {
+    cargarSedes();
     obtenerUbicacion();
   }, []);
+
+  const cargarSedes = async () => {
+    try {
+      const data = await apiRequest('/sedes/lista', 'GET');
+      setSedes(data.sedes || []);
+      if (data.sedes?.length > 0) {
+        setSedeSeleccionada(data.sedes[0]);
+      }
+    } catch (err) {
+      console.log('Error cargando sedes:', err);
+    } finally {
+      setCargandoSedes(false);
+    }
+  };
 
   const obtenerUbicacion = async () => {
     setCargandoGPS(true);
@@ -46,21 +62,16 @@ export default function EntradaScreen({ navigation }) {
   };
 
   const tomarFoto = async () => {
-    // Solicita permiso de cámara
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permiso denegado', 'Necesitamos acceso a la cámara para tomar la foto de evidencia.');
+      Alert.alert('Permiso denegado', 'Necesitamos acceso a la cámara.');
       return;
     }
-
-    // Abre la cámara
     const resultado = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: false,
-      quality: 0.7,      // 70% calidad para no pesar demasiado
-      base64: false,
+      quality: 0.7,
     });
-
     if (!resultado.canceled) {
       setFoto(resultado.assets[0]);
     }
@@ -69,6 +80,10 @@ export default function EntradaScreen({ navigation }) {
   const handleEntrada = async () => {
     if (!ubicacion) {
       Alert.alert('Error', 'Espera a que se obtenga tu ubicación GPS');
+      return;
+    }
+    if (!sedeSeleccionada) {
+      Alert.alert('Error', 'Selecciona una sede');
       return;
     }
     if (!foto) {
@@ -84,12 +99,11 @@ export default function EntradaScreen({ navigation }) {
   const enviarEntrada = async () => {
     setCargando(true);
     try {
-      // Prepara el FormData con GPS y foto
+      const token = await obtenerToken();
       const formData = new FormData();
-      formData.append('sede_id', SEDE_ID);
+      formData.append('sede_id', sedeSeleccionada.id);
       formData.append('latitud',  ubicacion.latitud);
       formData.append('longitud', ubicacion.longitud);
-
       if (foto) {
         formData.append('foto', {
           uri:  foto.uri,
@@ -98,19 +112,13 @@ export default function EntradaScreen({ navigation }) {
         });
       }
 
-      const respuesta = await fetch(
-        `${require('../services/api').BASE_URL || 'http://TU_IP:3000/api'}/turnos/entrada`,
-        {
-          method:  'POST',
-          headers: {
-            'Authorization': `Bearer ${await require('../services/api').obtenerToken()}`,
-          },
-          body: formData,
-        }
-      );
+      const respuesta = await fetch(`${BASE_URL}/turnos/entrada`, {
+        method:  'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body:    formData,
+      });
 
       const data = await respuesta.json();
-
       if (!respuesta.ok) throw new Error(data.error || 'Error del servidor');
 
       Alert.alert(
@@ -131,13 +139,45 @@ export default function EntradaScreen({ navigation }) {
         <Text style={styles.icono}>🟢</Text>
         <Text style={styles.titulo}>Registrar Entrada</Text>
         <Text style={styles.descripcion}>
-          Toma una foto de evidencia y registra tu llegada a la sede.
+          Selecciona tu sede, toma una foto y registra tu llegada.
         </Text>
 
-        {/* Sede */}
+        {/* Selector de sede */}
         <View style={styles.infoBox}>
-          <Text style={styles.infoTitulo}>📍 Sede asignada</Text>
-          <Text style={styles.infoTexto}>Sede Central Quito</Text>
+          <Text style={styles.infoTitulo}>📍 Selecciona tu sede</Text>
+          {cargandoSedes ? (
+            <ActivityIndicator size="small" color="#04342C" style={{ marginTop: 8 }} />
+          ) : (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
+              {sedes.map((sede) => (
+                <TouchableOpacity
+                  key={sede.id}
+                  onPress={() => setSedeSeleccionada(sede)}
+                  style={{
+                    padding: 10,
+                    marginRight: 8,
+                    borderRadius: 8,
+                    borderWidth: 2,
+                    borderColor: sedeSeleccionada?.id === sede.id ? '#04342C' : '#E0E0E0',
+                    backgroundColor: sedeSeleccionada?.id === sede.id ? '#E1F5EE' : '#F5F5F5',
+                  }}
+                >
+                  <Text style={{
+                    fontSize: 12,
+                    fontWeight: sedeSeleccionada?.id === sede.id ? '700' : '400',
+                    color: sedeSeleccionada?.id === sede.id ? '#04342C' : '#666',
+                  }}>
+                    {sede.nombre}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
+          {sedeSeleccionada && (
+            <Text style={{ fontSize: 11, color: '#888', marginTop: 6 }}>
+              {sedeSeleccionada.direccion}
+            </Text>
+          )}
         </View>
 
         {/* GPS */}
@@ -169,15 +209,14 @@ export default function EntradaScreen({ navigation }) {
           ) : null}
         </View>
 
-        {/* Foto de evidencia */}
+        {/* Foto */}
         <View style={styles.fotoSection}>
           <Text style={styles.infoTitulo}>📸 Foto de evidencia</Text>
-
           {foto ? (
             <View style={styles.fotoContainer}>
               <Image source={{ uri: foto.uri }} style={styles.fotoPreview} />
               <TouchableOpacity onPress={tomarFoto} style={styles.botonRetomar}>
-                <Text style={styles.botonRetamarTexto}>📷 Retomar foto</Text>
+                <Text style={styles.botonRetomarTexto}>📷 Retomar foto</Text>
               </TouchableOpacity>
             </View>
           ) : (
@@ -191,9 +230,7 @@ export default function EntradaScreen({ navigation }) {
         {/* Hora */}
         <View style={styles.infoBox}>
           <Text style={styles.infoTitulo}>🕐 Hora actual</Text>
-          <Text style={styles.infoTexto}>
-            {new Date().toLocaleTimeString('es-EC')}
-          </Text>
+          <Text style={styles.infoTexto}>{new Date().toLocaleTimeString('es-EC')}</Text>
           <Text style={styles.infoSub}>
             {new Date().toLocaleDateString('es-EC', {
               weekday: 'long', day: 'numeric', month: 'long'
@@ -233,62 +270,38 @@ const styles = StyleSheet.create({
   },
   icono: { fontSize: 48, marginBottom: 12 },
   titulo: { fontSize: 22, fontWeight: 'bold', color: '#04342C', marginBottom: 8 },
-  descripcion: {
-    fontSize: 14, color: '#666',
-    textAlign: 'center', lineHeight: 22, marginBottom: 24,
-  },
-  infoBox: {
-    backgroundColor: '#F5F5F5', borderRadius: 10,
-    padding: 16, width: '100%', marginBottom: 12,
-  },
+  descripcion: { fontSize: 14, color: '#666', textAlign: 'center', lineHeight: 22, marginBottom: 24 },
+  infoBox: { backgroundColor: '#F5F5F5', borderRadius: 10, padding: 16, width: '100%', marginBottom: 12 },
   infoTitulo: { fontSize: 12, color: '#888', marginBottom: 4, fontWeight: '500' },
   infoTexto: { fontSize: 16, fontWeight: '600', color: '#222' },
   infoSub: { fontSize: 12, color: '#888', marginTop: 2, textTransform: 'capitalize' },
   gpsBox: { borderRadius: 10, padding: 16, width: '100%', marginBottom: 12 },
   gpsCargando: { backgroundColor: '#FFF3CD' },
-  gpsOk:       { backgroundColor: '#E1F5EE' },
-  gpsError:    { backgroundColor: '#FCEBEB' },
-  gpsRow:      { flexDirection: 'row', alignItems: 'center' },
+  gpsOk: { backgroundColor: '#E1F5EE' },
+  gpsError: { backgroundColor: '#FCEBEB' },
+  gpsRow: { flexDirection: 'row', alignItems: 'center' },
   gpsCargandoTexto: { fontSize: 14, color: '#856404' },
   gpsOkTexto: { fontSize: 14, fontWeight: '600', color: '#085041', marginBottom: 6 },
   gpsCoordenadas: { fontSize: 12, color: '#0F6E56', fontFamily: 'monospace' },
   gpsPrecision: { fontSize: 11, color: '#888', marginTop: 4 },
   gpsErrorTexto: { fontSize: 13, color: '#A32D2D', lineHeight: 20 },
-  reintentar: {
-    marginTop: 8, backgroundColor: '#E24B4A',
-    borderRadius: 6, padding: 8, alignItems: 'center',
-  },
+  reintentar: { marginTop: 8, backgroundColor: '#E24B4A', borderRadius: 6, padding: 8, alignItems: 'center' },
   reintentarTexto: { color: '#fff', fontSize: 13, fontWeight: '600' },
-  fotoSection: {
-    width: '100%', marginBottom: 12,
-  },
+  fotoSection: { width: '100%', marginBottom: 12 },
   botonFoto: {
-    backgroundColor: '#F0F7F4',
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#04342C',
-    borderStyle: 'dashed',
-    padding: 24,
-    alignItems: 'center',
-    marginTop: 8,
+    backgroundColor: '#F0F7F4', borderRadius: 10,
+    borderWidth: 2, borderColor: '#04342C', borderStyle: 'dashed',
+    padding: 24, alignItems: 'center', marginTop: 8,
   },
   botonFotoIcono: { fontSize: 32, marginBottom: 8 },
   botonFotoTexto: { fontSize: 14, color: '#04342C', fontWeight: '600' },
   fotoContainer: { marginTop: 8, alignItems: 'center' },
-  fotoPreview: {
-    width: '100%', height: 200,
-    borderRadius: 10, marginBottom: 8,
-  },
-  botonRetomar: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 8, padding: 10,
-    alignItems: 'center', width: '100%',
-  },
-  botonRetamarTexto: { fontSize: 14, color: '#444', fontWeight: '500' },
+  fotoPreview: { width: '100%', height: 200, borderRadius: 10, marginBottom: 8 },
+  botonRetomar: { backgroundColor: '#F5F5F5', borderRadius: 8, padding: 10, alignItems: 'center', width: '100%' },
+  botonRetomarTexto: { fontSize: 14, color: '#444', fontWeight: '500' },
   boton: {
-    backgroundColor: '#1D9E75', borderRadius: 12,
-    padding: 16, alignItems: 'center',
-    width: '100%', marginBottom: 12, marginTop: 8,
+    backgroundColor: '#1D9E75', borderRadius: 12, padding: 16,
+    alignItems: 'center', width: '100%', marginBottom: 12, marginTop: 8,
   },
   botonDeshabilitado: { opacity: 0.5 },
   botonTexto: { color: '#fff', fontSize: 16, fontWeight: 'bold' },

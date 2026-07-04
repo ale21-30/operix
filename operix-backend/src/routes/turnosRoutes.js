@@ -19,5 +19,16 @@ router.post('/break/fin',     verificarToken, finalizarBreak);
 router.post('/novedad',       verificarToken, upload.single('foto'), registrarNovedad);
 router.get('/historial',      verificarToken, obtenerHistorial);
 router.get('/break/estado',   verificarToken, estadoBreak);
+router.get('/sedes/lista', verificarToken, async (req, res) => {
+  try {
+    const pool = require('../config/db');
+    const [sedes] = await pool.query(
+      'SELECT id, nombre, direccion FROM sedes WHERE activa = 1 ORDER BY nombre'
+    );
+    res.json({ sedes });
+  } catch (err) {
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
 
 module.exports = router;
