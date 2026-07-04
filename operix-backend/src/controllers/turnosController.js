@@ -1,4 +1,20 @@
 const pool = require('../config/db');
+const cloudinary = require('../config/cloudinary');
+
+// Función para subir foto a Cloudinary desde buffer
+const subirFoto = async (file) => {
+  if (!file) return null;
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: 'operix', transformation: [{ width: 1024, quality: 'auto' }] },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result.secure_url);
+      }
+    );
+    stream.end(file.buffer);
+  });
+};
 
 // ─────────────────────────────────────────
 // REGISTRAR ENTRADA
@@ -46,7 +62,7 @@ const registrarEntrada = async (req, res) => {
     }
 
     // Maneja la foto si se subió
-    const foto = req.file ? req.file.path : null;
+   const foto = await subirFoto(req.file);
 
     // Registra la entrada en la BD
     const [resultado] = await pool.query(
@@ -104,7 +120,7 @@ const registrarSalida = async (req, res) => {
       });
     }
 
-  const foto = req.file ? req.file.path : null;
+  const foto = await subirFoto(req.file);
 
     // Actualiza el turno con la salida
     await pool.query(
@@ -242,7 +258,7 @@ const registrarNovedad = async (req, res) => {
       return res.status(400).json({ error: 'No tienes un turno activo' });
     }
 
-    const foto = req.file ? req.file.path : null;
+    const foto = await subirFoto(req.file);
 
     await pool.query(
       `INSERT INTO novedades (turno_id, descripcion, foto) 

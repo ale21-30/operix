@@ -1,15 +1,17 @@
-const cloudinary = require('./cloudinary');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const multer = require('multer');
+const multer  = require('multer');
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder:         'operix',
-    allowed_formats: ['jpg', 'jpeg', 'png'],
-    transformation: [{ width: 1024, quality: 'auto' }],
-  },
+// Guarda en memoria temporalmente antes de subir a Cloudinary
+const storage = multer.memoryStorage();
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB máximo
+  fileFilter: (req, file, cb) => {
+    const tipos = /jpeg|jpg|png/;
+    const esValido = tipos.test(file.mimetype);
+    if (esValido) cb(null, true);
+    else cb(new Error('Solo imágenes JPG o PNG'));
+  }
 });
 
-const upload = multer({ storage });
 module.exports = upload;
