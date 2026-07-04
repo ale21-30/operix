@@ -118,7 +118,7 @@ export default function EntradaScreen({ navigation }) {
         body:    formData,
       });
 
-      const data = await respuesta.json();
+      const data = await apiRequest('/turnos/sedes/lista', 'GET');
       if (!respuesta.ok) throw new Error(data.error || 'Error del servidor');
 
       Alert.alert(
