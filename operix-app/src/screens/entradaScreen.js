@@ -22,19 +22,34 @@ export default function EntradaScreen({ navigation }) {
     obtenerUbicacion();
   }, []);
 
-  const cargarSedes = async () => {
-    try {
-      const data = await apiRequest('/sedes/lista', 'GET');
-      setSedes(data.sedes || []);
-      if (data.sedes?.length > 0) {
-        setSedeSeleccionada(data.sedes[0]);
+const cargarSedes = async () => {
+  try {
+    const token = await obtenerToken();
+    const respuesta = await fetch(
+      'https://operix-production-052c.up.railway.app/api/turnos/sedes/lista',
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       }
-    } catch (err) {
-      console.log('Error cargando sedes:', err);
-    } finally {
-      setCargandoSedes(false);
+    );
+    const data = await respuesta.json();
+    
+    // Muestra la respuesta en pantalla para diagnóstico
+    Alert.alert('Debug sedes', JSON.stringify(data));
+    
+    setSedes(data.sedes || []);
+    if (data.sedes?.length > 0) {
+      setSedeSeleccionada(data.sedes[0]);
     }
-  };
+  } catch (err) {
+    Alert.alert('Error sedes', err.message);
+  } finally {
+    setCargandoSedes(false);
+  }
+};
 
   const obtenerUbicacion = async () => {
     setCargandoGPS(true);
