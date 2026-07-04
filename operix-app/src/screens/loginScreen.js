@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { login, guardarToken } from '../services/api';
 
-const logo = require('../../assets/icon.png');
+const logo = require('../../assets/icono.png');
 export default function LoginScreen({ navigation }) {
   const [email,       setEmail]       = useState('');
   const [password,    setPassword]    = useState('');
