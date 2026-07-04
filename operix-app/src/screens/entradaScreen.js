@@ -36,16 +36,12 @@ const cargarSedes = async () => {
       }
     );
     const data = await respuesta.json();
-    
-    // Muestra la respuesta en pantalla para diagnóstico
-    Alert.alert('Debug sedes', JSON.stringify(data));
-    
     setSedes(data.sedes || []);
     if (data.sedes?.length > 0) {
       setSedeSeleccionada(data.sedes[0]);
     }
   } catch (err) {
-    Alert.alert('Error sedes', err.message);
+    console.log('Error sedes:', err.message);
   } finally {
     setCargandoSedes(false);
   }

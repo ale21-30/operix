@@ -46,7 +46,7 @@ const registrarEntrada = async (req, res) => {
     }
 
     // Maneja la foto si se subió
-    const foto = req.file ? req.file.filename : null;
+    const foto = req.file ? req.file.path : null;
 
     // Registra la entrada en la BD
     const [resultado] = await pool.query(
@@ -91,7 +91,7 @@ const registrarSalida = async (req, res) => {
       });
     }
 
-    const foto = req.file ? req.file.filename : null;
+  const foto = req.file ? req.file.path : null;
 
     // Actualiza el turno con la salida
     await pool.query(
@@ -229,7 +229,7 @@ const registrarNovedad = async (req, res) => {
       return res.status(400).json({ error: 'No tienes un turno activo' });
     }
 
-    const foto = req.file ? req.file.filename : null;
+    const foto = req.file ? req.file.path : null;
 
     await pool.query(
       `INSERT INTO novedades (turno_id, descripcion, foto) 
