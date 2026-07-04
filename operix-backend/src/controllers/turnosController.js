@@ -68,7 +68,20 @@ const registrarEntrada = async (req, res) => {
     console.error(err);
     res.status(500).json({ error: 'Error del servidor' });
   }
+  const registrarEntrada = async (req, res) => {
+  try {
+    console.log('📸 Archivo recibido:', req.file);
+    console.log('📦 Body recibido:', req.body);
+    
+    const { sede_id, latitud, longitud } = req.body;
+    // ... resto del código ...
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+
 };
+
 
 // ─────────────────────────────────────────
 // REGISTRAR SALIDA
@@ -337,3 +350,5 @@ module.exports = {
   obtenerHistorial,
   estadoBreak
 };
+
+}
