@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import { login, guardarToken } from '../services/api';
 
+const logo = require('../../assets/icon.png');
 export default function LoginScreen({ navigation }) {
   const [email,       setEmail]       = useState('');
   const [password,    setPassword]    = useState('');
@@ -36,7 +37,7 @@ export default function LoginScreen({ navigation }) {
     >
       <View style={styles.header}>
         <Image
-          source={require('../../assets/icon.png')}
+          source={logo}
           style={styles.logo}
           resizeMode="contain"
         />
