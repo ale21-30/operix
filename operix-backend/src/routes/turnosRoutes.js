@@ -30,5 +30,20 @@ router.get('/sedes/lista', verificarToken, async (req, res) => {
     res.status(500).json({ error: 'Error del servidor' });
   }
 });
-
+router.get('/activo', verificarToken, async (req, res) => {
+  try {
+    const pool = require('../config/db');
+    const [turnos] = await pool.query(
+      `SELECT t.id, t.entrada_hora, s.nombre AS sede
+       FROM turnos t
+       JOIN sedes s ON t.sede_id = s.id
+       WHERE t.usuario_id = ? AND t.estado = 'activo'
+       LIMIT 1`,
+      [req.usuario.id]
+    );
+    res.json({ turno: turnos[0] || null });
+  } catch (err) {
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
 module.exports = router;

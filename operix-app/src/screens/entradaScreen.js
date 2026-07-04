@@ -231,23 +231,26 @@ const cargarSedes = async () => {
           ) : null}
         </View>
 
-        {/* Foto */}
-        <View style={styles.fotoSection}>
-          <Text style={styles.infoTitulo}>📸 Foto de evidencia</Text>
-          {foto ? (
-            <View style={styles.fotoContainer}>
-              <Image source={{ uri: foto.uri }} style={styles.fotoPreview} />
-              <TouchableOpacity onPress={tomarFoto} style={styles.botonRetomar}>
-                <Text style={styles.botonRetomarTexto}>📷 Retomar foto</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <TouchableOpacity onPress={tomarFoto} style={styles.botonFoto}>
-              <Text style={styles.botonFotoIcono}>📷</Text>
-              <Text style={styles.botonFotoTexto}>Tomar foto de evidencia</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+       {foto ? (
+  <View style={styles.fotoContainer}>
+    <Image source={{ uri: foto.uri }} style={styles.fotoPreview} />
+    <TouchableOpacity
+      onPress={() => setFoto(null)}
+      style={styles.borrarFoto}
+    >
+      <Text style={styles.borrarFotoTexto}>✕</Text>
+    </TouchableOpacity>
+    <TouchableOpacity onPress={tomarFoto} style={styles.botonRetomar}>
+      <Text style={styles.botonRetomarTexto}>📷 Retomar foto</Text>
+    </TouchableOpacity>
+  </View>
+) : (
+
+  
+  <TouchableOpacity onPress={tomarFoto} style={styles.botonTomarFoto}>
+    <Text style={styles.botonTomarFotoTexto}>📷 Tomar foto</Text>
+  </TouchableOpacity>
+)}
 
         {/* Hora */}
         <View style={styles.infoBox}>
@@ -329,4 +332,20 @@ const styles = StyleSheet.create({
   botonTexto: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   botonCancelar: { padding: 12, alignItems: 'center', width: '100%' },
   botonCancelarTexto: { color: '#888', fontSize: 15 },
+  borrarFoto: {
+  position: 'absolute',
+  top: 8,
+  right: 8,
+  backgroundColor: 'rgba(0,0,0,0.6)',
+  borderRadius: 16,
+  width: 32,
+  height: 32,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+borrarFotoTexto: {
+  color: '#fff',
+  fontSize: 16,
+  fontWeight: 'bold',
+},
 });
