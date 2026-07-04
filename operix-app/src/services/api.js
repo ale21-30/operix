@@ -2,7 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 
 // URL base del backend — mientras desarrollas usa tu IP local
 // Cambia esta IP por la IP de tu computadora en la red WiFi
-export const BASE_URL = 'https://operix-production-052c.up.railway.app';
+export const BASE_URL = 'https://operix-production-052c.up.railway.app/api';
 // ↑ Luego te explico cómo encontrar tu IP exacta
 
 // ─────────────────────────────────────────
