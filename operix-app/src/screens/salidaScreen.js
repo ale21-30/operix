@@ -75,42 +75,45 @@ export default function SalidaScreen({ navigation }) {
     );
   };
 
-  const enviarSalida = async () => {
-    setCargando(true);
-    try {
-      const formData = new FormData();
-      formData.append('latitud',  ubicacion.latitud);
-      formData.append('longitud', ubicacion.longitud);
-
-      if (foto) {
-        formData.append('foto', {
-          uri:  foto.uri,
-          type: 'image/jpeg',
-          name: `salida_${Date.now()}.jpg`,
-        });
-      }
-
-      const token = await obtenerToken();
-      const respuesta = await fetch(`${BASE_URL}/turnos/salida`, {
-        method:  'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body:    formData,
+const enviarSalida = async () => {
+  setCargando(true);
+  try {
+    const token = await obtenerToken();
+    const formData = new FormData();
+    formData.append('latitud',  String(ubicacion.latitud));
+    formData.append('longitud', String(ubicacion.longitud));
+    if (foto) {
+      formData.append('foto', {
+        uri:  foto.uri,
+        type: 'image/jpeg',
+        name: `salida_${Date.now()}.jpg`,
       });
-
-      const data = await respuesta.json();
-      if (!respuesta.ok) throw new Error(data.error || 'Error del servidor');
-
-      Alert.alert(
-        '✅ Salida registrada',
-        `Hora: ${data.hora}`,
-        [{ text: 'OK', onPress: () => navigation.navigate('Home') }]
-      );
-    } catch (error) {
-      Alert.alert('Error', error.message);
-    } finally {
-      setCargando(false);
     }
-  };
+
+    const respuesta = await fetch(`${BASE_URL}/turnos/salida`, {
+      method:  'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body:    formData,
+    });
+
+    const data = await respuesta.json();
+
+    if (!respuesta.ok) {
+      Alert.alert('Error', data.error || 'Error del servidor');
+      return;
+    }
+
+    navigation.navigate('Home');
+    setTimeout(() => {
+      Alert.alert('✅ Salida registrada', `Hora: ${data.hora}`);
+    }, 500);
+
+  } catch (error) {
+    Alert.alert('Error', error.message);
+  } finally {
+    setCargando(false);
+  }
+};
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

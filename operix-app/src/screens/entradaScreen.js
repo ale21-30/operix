@@ -107,14 +107,14 @@ const cargarSedes = async () => {
     enviarEntrada();
   };
 
-  const enviarEntrada = async () => {
+const enviarEntrada = async () => {
   setCargando(true);
   try {
     const token = await obtenerToken();
     const formData = new FormData();
-    formData.append('sede_id', sedeSeleccionada.id);
-    formData.append('latitud',  ubicacion.latitud);
-    formData.append('longitud', ubicacion.longitud);
+    formData.append('sede_id', String(sedeSeleccionada.id));
+    formData.append('latitud',  String(ubicacion.latitud));
+    formData.append('longitud', String(ubicacion.longitud));
     if (foto) {
       formData.append('foto', {
         uri:  foto.uri,
@@ -130,9 +130,21 @@ const cargarSedes = async () => {
     });
 
     const data = await respuesta.json();
-    
-    // LOG TEMPORAL
-    Alert.alert('Debug respuesta', JSON.stringify(data));
+
+    // Si hay error del servidor lo muestra y no navega
+    if (!respuesta.ok) {
+      Alert.alert('No se pudo registrar', data.error || 'Error del servidor');
+      return;
+    }
+
+    // Éxito — navega primero, luego muestra el alert
+    navigation.navigate('Home');
+    setTimeout(() => {
+      Alert.alert(
+        '✅ Entrada registrada',
+        `Hora: ${data.hora}\nSede: ${data.sede}\nDistancia: ${data.distancia}m`
+      );
+    }, 500);
 
   } catch (error) {
     Alert.alert('Error', error.message);
@@ -228,9 +240,20 @@ const cargarSedes = async () => {
           ) : null}
         </View>
 
-       {foto ? (
+{foto ? (
   <View style={styles.fotoContainer}>
-    <Image source={{ uri: foto.uri }} style={styles.fotoPreview} />
+    {foto.uri ? (
+      <Image
+        source={{ uri: foto.uri }}
+        style={styles.fotoPreview}
+        onError={() => console.log('Error cargando imagen')}
+      />
+    ) : (
+      <View style={[styles.fotoPreview, { backgroundColor: '#E1F5EE', justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ fontSize: 40 }}>📷</Text>
+        <Text style={{ color: '#085041', fontSize: 13, marginTop: 8 }}>Foto tomada ✓</Text>
+      </View>
+    )}
     <TouchableOpacity
       onPress={() => setFoto(null)}
       style={styles.borrarFoto}
@@ -242,10 +265,9 @@ const cargarSedes = async () => {
     </TouchableOpacity>
   </View>
 ) : (
-
-  
-  <TouchableOpacity onPress={tomarFoto} style={styles.botonTomarFoto}>
-    <Text style={styles.botonTomarFotoTexto}>📷 Tomar foto</Text>
+  <TouchableOpacity onPress={tomarFoto} style={styles.botonFoto}>
+    <Text style={styles.botonFotoIcono}>📷</Text>
+    <Text style={styles.botonFotoTexto}>Tomar foto de evidencia</Text>
   </TouchableOpacity>
 )}
 
