@@ -49,11 +49,13 @@ export default function SalidaScreen({ navigation }) {
       Alert.alert('Permiso denegado', 'Necesitamos acceso a la cámara.');
       return;
     }
-    const resultado = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: false,
-      quality: 0.7,
-    });
+const resultado = await ImagePicker.launchCameraAsync({
+  mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  allowsEditing: false,
+  quality: 0.7,
+  exif: false,        // ← agrega esto
+  base64: false,      // ← y esto
+});
     if (!resultado.canceled) {
       setFoto(resultado.assets[0]);
     }
@@ -155,7 +157,11 @@ const enviarSalida = async () => {
 
 {foto ? (
   <View style={styles.fotoContainer}>
-    <Image source={{ uri: foto.uri }} style={styles.fotoPreview} />
+    <Image
+  source={{ uri: foto.uri }}
+  style={styles.fotoPreview}
+  resizeMode="cover"
+/>
     <TouchableOpacity
       onPress={() => setFoto(null)}
       style={styles.borrarFoto}

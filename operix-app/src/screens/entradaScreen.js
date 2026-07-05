@@ -78,11 +78,13 @@ const cargarSedes = async () => {
       Alert.alert('Permiso denegado', 'Necesitamos acceso a la cámara.');
       return;
     }
-    const resultado = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: false,
-      quality: 0.7,
-    });
+const resultado = await ImagePicker.launchCameraAsync({
+  mediaTypes: ImagePicker.MediaTypeOptions.Images,
+  allowsEditing: false,
+  quality: 0.7,
+  exif: false,        // ← agrega esto
+  base64: false,      // ← y esto
+});
     if (!resultado.canceled) {
       setFoto(resultado.assets[0]);
     }
@@ -243,11 +245,11 @@ const enviarEntrada = async () => {
 {foto ? (
   <View style={styles.fotoContainer}>
     {foto.uri ? (
-      <Image
-        source={{ uri: foto.uri }}
-        style={styles.fotoPreview}
-        onError={() => console.log('Error cargando imagen')}
-      />
+<Image
+  source={{ uri: foto.uri }}
+  style={styles.fotoPreview}
+  resizeMode="cover"
+/>
     ) : (
       <View style={[styles.fotoPreview, { backgroundColor: '#E1F5EE', justifyContent: 'center', alignItems: 'center' }]}>
         <Text style={{ fontSize: 40 }}>📷</Text>
