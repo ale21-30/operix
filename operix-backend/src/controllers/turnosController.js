@@ -20,6 +20,8 @@ const subirFoto = async (file) => {
 // REGISTRAR ENTRADA
 // ─────────────────────────────────────────
 const registrarEntrada = async (req, res) => {
+  
+}
   try {
     const { sede_id, latitud, longitud } = req.body;
     const usuario_id = req.usuario.id; // viene del token JWT
@@ -366,5 +368,3 @@ module.exports = {
   obtenerHistorial,
   estadoBreak
 };
-
-}
