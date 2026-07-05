@@ -108,41 +108,38 @@ const cargarSedes = async () => {
   };
 
   const enviarEntrada = async () => {
-    setCargando(true);
-    try {
-      const token = await obtenerToken();
-      const formData = new FormData();
-      formData.append('sede_id', sedeSeleccionada.id);
-      formData.append('latitud',  ubicacion.latitud);
-      formData.append('longitud', ubicacion.longitud);
-      if (foto) {
-        formData.append('foto', {
-          uri:  foto.uri,
-          type: 'image/jpeg',
-          name: `entrada_${Date.now()}.jpg`,
-        });
-      }
-
-      const respuesta = await fetch(`${BASE_URL}/turnos/entrada`, {
-        method:  'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body:    formData,
+  setCargando(true);
+  try {
+    const token = await obtenerToken();
+    const formData = new FormData();
+    formData.append('sede_id', sedeSeleccionada.id);
+    formData.append('latitud',  ubicacion.latitud);
+    formData.append('longitud', ubicacion.longitud);
+    if (foto) {
+      formData.append('foto', {
+        uri:  foto.uri,
+        type: 'image/jpeg',
+        name: `entrada_${Date.now()}.jpg`,
       });
-
-      const data = await apiRequest('/turnos/sedes/lista', 'GET');
-      if (!respuesta.ok) throw new Error(data.error || 'Error del servidor');
-
-      Alert.alert(
-        '✅ Entrada registrada',
-        `Hora: ${data.hora}\nSede: ${data.sede}\nDistancia: ${data.distancia}m`,
-        [{ text: 'OK', onPress: () => navigation.navigate('Home') }]
-      );
-    } catch (error) {
-      Alert.alert('Error', error.message);
-    } finally {
-      setCargando(false);
     }
-  };
+
+    const respuesta = await fetch(`${BASE_URL}/turnos/entrada`, {
+      method:  'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body:    formData,
+    });
+
+    const data = await respuesta.json();
+    
+    // LOG TEMPORAL
+    Alert.alert('Debug respuesta', JSON.stringify(data));
+
+  } catch (error) {
+    Alert.alert('Error', error.message);
+  } finally {
+    setCargando(false);
+  }
+};
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
