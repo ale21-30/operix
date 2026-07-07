@@ -30,7 +30,7 @@ const login = async (req, res) => {
     const token = jwt.sign(
       { id: usuario.id, rol: usuario.rol, nombre: usuario.nombre },
       process.env.JWT_SECRET,
-      { expiresIn: '8h' }   // El token dura 8 horas (un turno)
+      { expiresIn: '12h' }   // El token dura 12 horas (un turno)
     );
 
     // Responde con el token y datos básicos del usuario
