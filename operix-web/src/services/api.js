@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:3000/api';
+const BASE_URL = 'https://operix-production-052c.up.railway.app/api';
 
 const api = axios.create({ baseURL: BASE_URL });
 
