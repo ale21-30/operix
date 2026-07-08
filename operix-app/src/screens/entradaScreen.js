@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
-import { BASE_URL, obtenerToken, apiRequest } from '../services/api';
+import { BASE_URL, obtenerToken, eliminarToken } from '../services/api';
 
 export default function EntradaScreen({ navigation }) {
   const [cargando,      setCargando]      = useState(false);
@@ -25,16 +25,25 @@ export default function EntradaScreen({ navigation }) {
 const cargarSedes = async () => {
   try {
     const token = await obtenerToken();
+    if (!token) {
+      navigation.replace('Login');
+      return;
+    }
     const respuesta = await fetch(
-      'https://operix-production-052c.up.railway.app/api/turnos/sedes/lista',
+      `${BASE_URL}/turnos/sedes/lista`,
       {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       }
     );
+
+    // Si el token expiró redirige al login
+    if (respuesta.status === 401 || respuesta.status === 403) {
+      await eliminarToken();
+      navigation.replace('Login');
+      return;
+    }
+
     const data = await respuesta.json();
     setSedes(data.sedes || []);
     if (data.sedes?.length > 0) {

@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import * as Location from 'expo-location';
 import * as ImagePicker from 'expo-image-picker';
-import { obtenerToken, BASE_URL } from '../services/api';
+import { BASE_URL, obtenerToken, eliminarToken } from '../services/api';
 
 export default function SalidaScreen({ navigation }) {
   const [cargando,    setCargando]    = useState(false);
