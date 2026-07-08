@@ -12,23 +12,24 @@ export default function NovedadScreen({ navigation }) {
   const [cargando,    setCargando]    = useState(false);
   const [foto,        setFoto]        = useState(null);
 
-  const tomarFoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permiso denegado', 'Necesitamos acceso a la cámara.');
-      return;
-    }
-const resultado = await ImagePicker.launchCameraAsync({
-  mediaTypes: ImagePicker.MediaTypeOptions.Images,
-  allowsEditing: false,
-  quality: 0.7,
-  exif: false,        // ← agrega esto
-  base64: false,      // ← y esto
-});
-    if (!resultado.canceled) {
-      setFoto(resultado.assets[0]);
-    }
-  };
+const tomarFoto = async () => {
+  const { status } = await ImagePicker.requestCameraPermissionsAsync();
+  if (status !== 'granted') {
+    Alert.alert('Permiso denegado', 'Necesitamos acceso a la cámara.');
+    return;
+  }
+  const resultado = await ImagePicker.launchCameraAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    allowsEditing: true,   // ← cambia a true
+    aspect: [4, 3],        // ← agrega esto
+    quality: 0.7,
+    exif: false,
+    base64: false,
+  });
+  if (!resultado.canceled && resultado.assets?.length > 0) {
+    setFoto(resultado.assets[0]); // ← asegura que toma assets[0]
+  }
+};
 
   const handleNovedad = async () => {
     if (!descripcion.trim()) {
@@ -90,13 +91,13 @@ const resultado = await ImagePicker.launchCameraAsync({
           textAlignVertical="top"
         />
 
-   {foto ? (
+{foto ? (
   <View style={styles.fotoContainer}>
-   <Image
-  source={{ uri: foto.uri }}
-  style={styles.fotoPreview}
-  resizeMode="cover"
-/>
+    <Image
+      source={{ uri: foto.uri }}
+      style={styles.fotoPreview}
+      resizeMode="cover"
+    />
     <TouchableOpacity
       onPress={() => setFoto(null)}
       style={styles.borrarFoto}
@@ -108,26 +109,11 @@ const resultado = await ImagePicker.launchCameraAsync({
     </TouchableOpacity>
   </View>
 ) : (
-  <TouchableOpacity onPress={tomarFoto} style={styles.botonTomarFoto}>
-    <Text style={styles.botonTomarFotoTexto}>📷 Tomar foto</Text>
+  <TouchableOpacity onPress={tomarFoto} style={styles.botonFoto}>
+    <Text style={styles.botonFotoIcono}>📷</Text>
+    <Text style={styles.botonFotoTexto}>Tomar foto de evidencia</Text>
   </TouchableOpacity>
 )}
-
-        <TouchableOpacity
-          style={[styles.boton, cargando && styles.botonDeshabilitado]}
-          onPress={handleNovedad}
-          disabled={cargando}
-        >
-          {cargando ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.botonTexto}>Guardar novedad</Text>
-          )}
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.botonCancelar} onPress={() => navigation.goBack()}>
-          <Text style={styles.botonCancelarTexto}>Cancelar</Text>
-        </TouchableOpacity>
       </View>
     </ScrollView>
   );

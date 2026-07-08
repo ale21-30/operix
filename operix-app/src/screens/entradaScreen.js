@@ -81,23 +81,24 @@ const cargarSedes = async () => {
     }
   };
 
-  const tomarFoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permiso denegado', 'Necesitamos acceso a la cámara.');
-      return;
-    }
-const resultado = await ImagePicker.launchCameraAsync({
-  mediaTypes: ImagePicker.MediaTypeOptions.Images,
-  allowsEditing: false,
-  quality: 0.7,
-  exif: false,        // ← agrega esto
-  base64: false,      // ← y esto
-});
-    if (!resultado.canceled) {
-      setFoto(resultado.assets[0]);
-    }
-  };
+const tomarFoto = async () => {
+  const { status } = await ImagePicker.requestCameraPermissionsAsync();
+  if (status !== 'granted') {
+    Alert.alert('Permiso denegado', 'Necesitamos acceso a la cámara.');
+    return;
+  }
+  const resultado = await ImagePicker.launchCameraAsync({
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    allowsEditing: true,   // ← cambia a true
+    aspect: [4, 3],        // ← agrega esto
+    quality: 0.7,
+    exif: false,
+    base64: false,
+  });
+  if (!resultado.canceled && resultado.assets?.length > 0) {
+    setFoto(resultado.assets[0]); // ← asegura que toma assets[0]
+  }
+};
 
   const handleEntrada = async () => {
     if (!ubicacion) {
@@ -253,18 +254,11 @@ const enviarEntrada = async () => {
 
 {foto ? (
   <View style={styles.fotoContainer}>
-    {foto.uri ? (
-<Image
-  source={{ uri: foto.uri }}
-  style={styles.fotoPreview}
-  resizeMode="cover"
-/>
-    ) : (
-      <View style={[styles.fotoPreview, { backgroundColor: '#E1F5EE', justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={{ fontSize: 40 }}>📷</Text>
-        <Text style={{ color: '#085041', fontSize: 13, marginTop: 8 }}>Foto tomada ✓</Text>
-      </View>
-    )}
+    <Image
+      source={{ uri: foto.uri }}
+      style={styles.fotoPreview}
+      resizeMode="cover"
+    />
     <TouchableOpacity
       onPress={() => setFoto(null)}
       style={styles.borrarFoto}

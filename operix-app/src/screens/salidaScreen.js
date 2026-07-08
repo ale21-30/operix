@@ -158,10 +158,10 @@ const enviarSalida = async () => {
 {foto ? (
   <View style={styles.fotoContainer}>
     <Image
-  source={{ uri: foto.uri }}
-  style={styles.fotoPreview}
-  resizeMode="cover"
-/>
+      source={{ uri: foto.uri }}
+      style={styles.fotoPreview}
+      resizeMode="cover"
+    />
     <TouchableOpacity
       onPress={() => setFoto(null)}
       style={styles.borrarFoto}
@@ -174,9 +174,10 @@ const enviarSalida = async () => {
   </View>
 ) : (
   <View style={styles.fotoContainer}>
-    <TouchableOpacity onPress={tomarFoto} style={styles.botonTomarFoto}>
-      <Text style={styles.botonTomarFotoTexto}>📷 Tomar foto</Text>
-    </TouchableOpacity>
+  <TouchableOpacity onPress={tomarFoto} style={styles.botonFoto}>
+    <Text style={styles.botonFotoIcono}>📷</Text>
+    <Text style={styles.botonFotoTexto}>Tomar foto de evidencia</Text>
+  </TouchableOpacity>
   </View>
 )}
 
