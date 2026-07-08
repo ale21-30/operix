@@ -7,6 +7,14 @@
     "icon": "./assets/icono.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "updates": {
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "url": "https://u.expo.dev/050f6c15-3c9f-416b-be76-66e9beee0ede"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "splash": {
       "image": "./assets/icono.png",
       "resizeMode": "contain",
@@ -21,19 +29,19 @@
         "backgroundColor": "#04342C"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.ale_2130.operixapp"
+      "package": "com.operix.asistencia"
     },
     "web": {
       "favicon": "./assets/icono.png"
     },
     "plugins": [
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-updates"
     ],
     "extra": {
       "eas": {
         "projectId": "050f6c15-3c9f-416b-be76-66e9beee0ede"
       }
-    },
-    "owner": "ale_2130"
+    }
   }
 }
