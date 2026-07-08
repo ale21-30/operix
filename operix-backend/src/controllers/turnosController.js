@@ -73,8 +73,6 @@ res.json({
   distancia: Math.round(distancia)
 });
 
-    const foto = await subirFoto(req.file);
-
     const [resultado] = await pool.query(
       `INSERT INTO turnos (usuario_id, sede_id, entrada_hora, entrada_lat, entrada_lng, entrada_foto)
        VALUES (?, ?, NOW(), ?, ?, ?)`,
