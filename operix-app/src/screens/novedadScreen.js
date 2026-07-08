@@ -20,7 +20,7 @@ const tomarFoto = async () => {
   }
   const resultado = await ImagePicker.launchCameraAsync({
     mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    allowsEditing: true,   // ← cambia a true
+    allowsEditing: false,   // ← cambia a true
     aspect: [4, 3],        // ← agrega esto
     quality: 0.7,
     exif: false,
