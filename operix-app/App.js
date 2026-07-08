@@ -1,10 +1,5 @@
-import AppNavigator from './src/navigation/appNavigator';
-export default function App() {
-  return <AppNavigator />;
-}
-
+import React, { useEffect } from 'react';
 import * as Updates from 'expo-updates';
-import { useEffect } from 'react';
 import AppNavigator from './src/navigation/appNavigator';
 
 export default function App() {
@@ -21,7 +16,6 @@ export default function App() {
         await Updates.reloadAsync();
       }
     } catch (err) {
-      // Si falla silenciosamente no interrumpe la app
       console.log('Update check:', err.message);
     }
   };
