@@ -48,30 +48,12 @@ const registrarEntrada = async (req, res) => {
       return res.status(404).json({ error: 'Sede no encontrada' });
     }
 
-// Calcula la distancia pero NO bloquea el registro
-const distancia = calcularDistancia(
-  parseFloat(latitud), parseFloat(longitud),
-  parseFloat(sede[0].latitud), parseFloat(sede[0].longitud)
-);
+    const distancia = calcularDistancia(
+      parseFloat(latitud), parseFloat(longitud),
+      parseFloat(sede[0].latitud), parseFloat(sede[0].longitud)
+    );
 
-// Solo registra la distancia, no impide el turno
-console.log(`📍 Empleado a ${Math.round(distancia)}m de la sede ${sede[0].nombre}`);
-
-const foto = await subirFoto(req.file);
-
-const [resultado] = await pool.query(
-  `INSERT INTO turnos (usuario_id, sede_id, entrada_hora, entrada_lat, entrada_lng, entrada_foto)
-   VALUES (?, ?, NOW(), ?, ?, ?)`,
-  [usuario_id, sede_id, latitud, longitud, foto]
-);
-
-res.json({
-  mensaje:   'Entrada registrada correctamente',
-  turno_id:  resultado.insertId,
-  hora:      new Date().toLocaleTimeString('es-EC'),
-  sede:      sede[0].nombre,
-  distancia: Math.round(distancia)
-});
+    const foto = await subirFoto(req.file);
 
     const [resultado] = await pool.query(
       `INSERT INTO turnos (usuario_id, sede_id, entrada_hora, entrada_lat, entrada_lng, entrada_foto)
