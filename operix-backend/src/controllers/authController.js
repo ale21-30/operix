@@ -8,10 +8,10 @@ const login = async (req, res) => {
     const { email, password } = req.body;
 
     // Busca el usuario en la BD por email
-    const [rows] = await pool.query(
-      'SELECT * FROM usuarios WHERE email = ? AND activo = true',
-      [email]
-    );
+const [rows] = await pool.query(
+  'SELECT * FROM usuarios WHERE email = ? AND activo = true',
+  [email]
+);
 
     // Si no existe el usuario
     if (rows.length === 0) {
@@ -34,18 +34,47 @@ const login = async (req, res) => {
     );
 
     // Responde con el token y datos básicos del usuario
-    res.json({
-      token,
-      usuario: {
-        id:     usuario.id,
-        nombre: usuario.nombre,
-        rol:    usuario.rol
-      }
-    });
+  res.json({
+  token,
+  usuario: {
+    id:           usuario.id,
+    nombre:       usuario.nombre,
+    rol:          usuario.rol,
+    primer_login: usuario.primer_login  // ← agrega esto
+  }
+});
 
   } catch (err) {
     res.status(500).json({ error: 'Error del servidor' });
   }
 };
 
-module.exports = { login };
+const cambiarPassword = async (req, res) => {
+  try {
+    const { password_nueva } = req.body;
+    const usuario_id = req.usuario.id;
+
+    if (!password_nueva || password_nueva.length < 6) {
+      return res.status(400).json({ 
+        error: 'La contraseña debe tener al menos 6 caracteres' 
+      });
+    }
+
+    const hash = await bcrypt.hash(password_nueva, 10);
+
+    await pool.query(
+      `UPDATE usuarios 
+       SET password = ?, primer_login = FALSE 
+       WHERE id = ?`,
+      [hash, usuario_id]
+    );
+
+    res.json({ mensaje: 'Contraseña actualizada correctamente' });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+};
+
+module.exports = { login, cambiarPassword };

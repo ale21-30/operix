@@ -110,3 +110,8 @@ export const registrarNovedad = async (descripcion) => {
 export const obtenerHistorial = async () => {
   return await apiRequest('/turnos/historial', 'GET');
 };
+export const cambiarPassword = async (passwordNueva) => {
+  return await apiRequest('/auth/cambiar-password', 'POST', { 
+    password_nueva: passwordNueva 
+  });
+};

@@ -13,22 +13,30 @@ export default function LoginScreen({ navigation }) {
   const [cargando,    setCargando]    = useState(false);
   const [verPassword, setVerPassword] = useState(false);
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Por favor completa todos los campos');
-      return;
-    }
-    setCargando(true);
-    try {
-      const respuesta = await login(email.trim().toLowerCase(), password);
-      await guardarToken(respuesta.token);
+const handleLogin = async () => {
+  if (!email || !password) {
+    Alert.alert('Error', 'Por favor completa todos los campos');
+    return;
+  }
+  setCargando(true);
+  try {
+    const respuesta = await login(email.trim().toLowerCase(), password);
+    await guardarToken(respuesta.token);
+
+    // Si es primer login redirige a cambiar contraseña
+    if (respuesta.usuario.primer_login) {
+      navigation.replace('CambiarPassword', { 
+        nombre: respuesta.usuario.nombre.split(' ')[0] 
+      });
+    } else {
       navigation.replace('Home');
-    } catch (error) {
-      Alert.alert('Error', error.message || 'Credenciales incorrectas');
-    } finally {
-      setCargando(false);
     }
-  };
+  } catch (error) {
+    Alert.alert('Error', error.message || 'Credenciales incorrectas');
+  } finally {
+    setCargando(false);
+  }
+};
 
   return (
     <KeyboardAvoidingView

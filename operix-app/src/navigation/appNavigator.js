@@ -10,6 +10,7 @@ import SalidaScreen    from '../screens/salidaScreen';
 import BreakScreen     from '../screens/breakScreen';
 import NovedadScreen   from '../screens/novedadScreen';
 import HistorialScreen from '../screens/historialScreen';
+import CambiarPasswordScreen from '../screens/cambiarPasswordScreen';
 
 import { obtenerToken, eliminarToken } from '../services/api';
 
@@ -104,6 +105,11 @@ export default function AppNavigator() {
             component={HistorialScreen}
             options={{ title: 'Mi Historial' }}
           />
+          <Stack.Screen
+  name="CambiarPassword"
+  component={CambiarPasswordScreen}
+  options={{ headerShown: false }}
+/>
         </Stack.Navigator>
       </NavigationContainer>
     </SesionContext.Provider>
