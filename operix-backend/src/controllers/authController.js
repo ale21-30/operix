@@ -30,7 +30,7 @@ const [rows] = await pool.query(
     const token = jwt.sign(
       { id: usuario.id, rol: usuario.rol, nombre: usuario.nombre },
       process.env.JWT_SECRET,
-      { expiresIn: '24h' }   // El token dura 12 horas (un turno)
+      { expiresIn: '7d' }   // El token dura 12 horas (un turno)
     );
 
     // Responde con el token y datos básicos del usuario
