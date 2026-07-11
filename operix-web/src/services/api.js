@@ -60,3 +60,18 @@ export const crearSede = async (datos) => {
   const res = await api.post('/admin/sedes', datos);
   return res.data;
 };
+
+export const getTurnosActivos = async () => {
+  const res = await api.get('/admin/turnos/activos');
+  return res.data;
+};
+
+export const cerrarTurno = async (id) => {
+  const res = await api.put(`/admin/turnos/${id}/cerrar`);
+  return res.data;
+};
+
+export const toggleUsuario = async (id, activo) => {
+  const res = await api.put(`/admin/empleados/${id}/estado`, { activo });
+  return res.data;
+};

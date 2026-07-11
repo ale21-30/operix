@@ -38,6 +38,18 @@ export default function EmpleadosPage() {
     }
   };
 
+  const handleToggleEstado = async (emp) => {
+    if (!window.confirm(
+      `¿${emp.activo ? 'Desactivar' : 'Activar'} a ${emp.nombre}?`
+    )) return;
+    try {
+      await api.put(`/admin/empleados/${emp.id}/estado`, { activo: !emp.activo });
+      cargarEmpleados();
+    } catch (err) {
+      alert('Error al cambiar estado del empleado');
+    }
+  };
+
   return (
     <div style={s.container}>
       <div style={s.header}>
@@ -72,10 +84,28 @@ export default function EmpleadosPage() {
                 {emp.rol}
               </span>
             </div>
-            <div style={{
-              ...s.statusDot,
-              background: emp.activo ? '#1D9E75' : '#E24B4A'
-            }} title={emp.activo ? 'Activo' : 'Inactivo'} />
+            <div style={s.cardAcciones}>
+              <div style={{
+                ...s.statusDot,
+                background: emp.activo ? '#1D9E75' : '#E24B4A'
+              }} title={emp.activo ? 'Activo' : 'Inactivo'} />
+              <button
+                onClick={() => handleToggleEstado(emp)}
+                style={{
+                  padding: '5px 12px',
+                  fontSize: 12,
+                  cursor: 'pointer',
+                  borderRadius: 6,
+                  border: 'none',
+                  background: emp.activo ? '#FCEBEB' : '#E1F5EE',
+                  color: emp.activo ? '#A32D2D' : '#085041',
+                  fontWeight: '600',
+                  marginTop: 6,
+                }}
+              >
+                {emp.activo ? 'Desactivar' : 'Activar'}
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -98,7 +128,7 @@ export default function EmpleadosPage() {
                 <label style={s.label}>Correo electrónico</label>
                 <input required type="email" style={s.input} value={form.email}
                   onChange={e => setForm({ ...form, email: e.target.value })}
-                  placeholder="maria@operix.com" />
+                  placeholder="maria@correo.com" />
               </div>
               <div style={s.campo}>
                 <label style={s.label}>Contraseña inicial</label>
@@ -132,40 +162,41 @@ export default function EmpleadosPage() {
 }
 
 const s = {
-  container: { padding:32 },
-  header:    { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:24 },
-  titulo:    { fontSize:28, fontWeight:'bold', color:'#04342C', margin:0 },
-  sub:       { fontSize:14, color:'#888', marginTop:4 },
-  botonNuevo:{ padding:'10px 20px', background:'#04342C', color:'#fff', border:'none', borderRadius:8, fontSize:14, fontWeight:'600', cursor:'pointer' },
-  grid:      { display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:16 },
-  cargando:  { padding:40, textAlign:'center', color:'#888', gridColumn:'1/-1' },
-  vacio:     { padding:40, textAlign:'center', color:'#888', gridColumn:'1/-1' },
-  card:      {
-    background:'#fff', borderRadius:12, padding:20,
-    display:'flex', alignItems:'center', gap:16,
-    boxShadow:'0 1px 4px rgba(0,0,0,0.08)',
-    position:'relative',
+  container:    { padding: 32 },
+  header:       { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 },
+  titulo:       { fontSize: 28, fontWeight: 'bold', color: '#04342C', margin: 0 },
+  sub:          { fontSize: 14, color: '#888', marginTop: 4 },
+  botonNuevo:   { padding: '10px 20px', background: '#04342C', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: '600', cursor: 'pointer' },
+  grid:         { display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(300px,1fr))', gap: 16 },
+  cargando:     { padding: 40, textAlign: 'center', color: '#888', gridColumn: '1/-1' },
+  vacio:        { padding: 40, textAlign: 'center', color: '#888', gridColumn: '1/-1' },
+  card:         {
+    background: '#fff', borderRadius: 12, padding: 20,
+    display: 'flex', alignItems: 'center', gap: 16,
+    boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+    position: 'relative',
   },
-  cardAvatar:{
-    width:48, height:48, borderRadius:'50%',
-    background:'#04342C', color:'#fff',
-    display:'flex', alignItems:'center', justifyContent:'center',
-    fontSize:20, fontWeight:'bold', flexShrink:0,
+  cardAvatar:   {
+    width: 48, height: 48, borderRadius: '50%',
+    background: '#04342C', color: '#fff',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 20, fontWeight: 'bold', flexShrink: 0,
   },
-  cardInfo:  { flex:1 },
-  cardNombre:{ fontSize:16, fontWeight:'600', color:'#222' },
-  cardEmail: { fontSize:13, color:'#888', marginTop:2, marginBottom:6 },
-  badge:     { padding:'3px 10px', borderRadius:20, fontSize:11, fontWeight:'600' },
-  statusDot: { width:10, height:10, borderRadius:'50%', position:'absolute', top:16, right:16 },
-  overlay:   { position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000 },
-  modal:     { background:'#fff', borderRadius:16, padding:32, width:'100%', maxWidth:440, boxShadow:'0 20px 60px rgba(0,0,0,0.3)' },
-  modalTitulo:{ fontSize:22, fontWeight:'bold', color:'#04342C', marginBottom:24 },
-  form:      { display:'flex', flexDirection:'column', gap:16 },
-  error:     { background:'#FCEBEB', color:'#A32D2D', padding:'10px 14px', borderRadius:8, fontSize:13 },
-  campo:     { display:'flex', flexDirection:'column', gap:6 },
-  label:     { fontSize:13, fontWeight:'500', color:'#444' },
-  input:     { padding:'10px 14px', border:'1px solid #E0E0E0', borderRadius:8, fontSize:14, background:'#F5F5F5' },
-  botonesModal:{ display:'flex', gap:12, justifyContent:'flex-end', marginTop:8 },
-  botonCancelar:{ padding:'10px 20px', background:'#F5F5F5', color:'#444', border:'1px solid #E0E0E0', borderRadius:8, cursor:'pointer', fontSize:14 },
-  botonGuardar: { padding:'10px 20px', background:'#04342C', color:'#fff', border:'none', borderRadius:8, cursor:'pointer', fontSize:14, fontWeight:'600' },
+  cardInfo:     { flex: 1 },
+  cardNombre:   { fontSize: 15, fontWeight: '600', color: '#222' },
+  cardEmail:    { fontSize: 13, color: '#888', marginTop: 2, marginBottom: 6 },
+  badge:        { padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: '600' },
+  cardAcciones: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 },
+  statusDot:    { width: 10, height: 10, borderRadius: '50%' },
+  overlay:      { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
+  modal:        { background: '#fff', borderRadius: 16, padding: 32, width: '100%', maxWidth: 440, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' },
+  modalTitulo:  { fontSize: 22, fontWeight: 'bold', color: '#04342C', marginBottom: 24 },
+  form:         { display: 'flex', flexDirection: 'column', gap: 16 },
+  error:        { background: '#FCEBEB', color: '#A32D2D', padding: '10px 14px', borderRadius: 8, fontSize: 13 },
+  campo:        { display: 'flex', flexDirection: 'column', gap: 6 },
+  label:        { fontSize: 13, fontWeight: '500', color: '#444' },
+  input:        { padding: '10px 14px', border: '1px solid #E0E0E0', borderRadius: 8, fontSize: 14, background: '#F5F5F5' },
+  botonesModal: { display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 8 },
+  botonCancelar:{ padding: '10px 20px', background: '#F5F5F5', color: '#444', border: '1px solid #E0E0E0', borderRadius: 8, cursor: 'pointer', fontSize: 14 },
+  botonGuardar: { padding: '10px 20px', background: '#04342C', color: '#fff', border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: '600' },
 };
