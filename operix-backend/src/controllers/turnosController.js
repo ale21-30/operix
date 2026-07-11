@@ -64,7 +64,7 @@ const registrarEntrada = async (req, res) => {
     res.json({
       mensaje:   'Entrada registrada correctamente',
       turno_id:  resultado.insertId,
-      hora:      new Date().toLocaleTimeString('es-EC'),
+      hora: new Date().toLocaleTimeString('es-EC', { timeZone: 'America/Guayaquil' }),
       sede:      sede[0].nombre,
       distancia: Math.round(distancia)
     });
@@ -98,7 +98,7 @@ const registrarSalida = async (req, res) => {
     res.json({
       mensaje:  'Salida registrada correctamente',
       turno_id: turno[0].id,
-      hora:     new Date().toLocaleTimeString('es-EC')
+      hora: new Date().toLocaleTimeString('es-EC', { timeZone: 'America/Guayaquil' })
     });
   } catch (err) {
     console.error('Error registrarSalida:', err);
