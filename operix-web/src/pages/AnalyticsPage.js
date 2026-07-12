@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const ML_URL = 'https://modelo-python-production.up.railway.app';
+const ML_URL = 'https://operix-production-052c.up.railway.app/api/admin';
 
 const COLORES_CATEGORIA = {
   'Puntual':             '#1D9E75',
@@ -23,7 +23,13 @@ const cargarDatos = async () => {
   setCargando(true);
   setError(null);
   try {
-    const res = await fetch(`${ML_URL}/resumen-ml`);
+    const token = localStorage.getItem('operix_token');
+    const res = await fetch(
+      'https://operix-production-052c.up.railway.app/api/admin/ml/resumen',
+      {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }
+    );
     const data = await res.json();
     if (data.ok) {
       setDatos(data);
@@ -31,27 +37,33 @@ const cargarDatos = async () => {
       setError(data.error);
     }
   } catch (err) {
-    setError('No se puede conectar con el servidor ML. Verifica que esté corriendo en puerto 5000.');
+    setError('No se puede conectar con el servidor ML.');
   } finally {
     setCargando(false);
   }
 };
 
-  const reentrenar = async () => {
-    setEntrenando(true);
-    try {
-      const res  = await fetch(`${ML_URL}/entrenar`);
-      const data = await res.json();
-      if (data.ok) {
-        alert(`✅ Modelo reentrenado con ${data.accuracy}% de accuracy`);
-        cargarDatos();
+const reentrenar = async () => {
+  setEntrenando(true);
+  try {
+    const token = localStorage.getItem('operix_token');
+    const res = await fetch(
+      'https://operix-production-052c.up.railway.app/api/admin/ml/entrenar',
+      {
+        headers: { 'Authorization': `Bearer ${token}` }
       }
-    } catch (err) {
-      alert('Error al entrenar el modelo');
-    } finally {
-      setEntrenando(false);
+    );
+    const data = await res.json();
+    if (data.ok) {
+      alert(`✅ Modelo reentrenado correctamente`);
+      cargarDatos();
     }
-  };
+  } catch (err) {
+    alert('Error al entrenar el modelo');
+  } finally {
+    setEntrenando(false);
+  }
+};
 
   if (cargando) return <div style={s.cargando}>🤖 Cargando análisis ML...</div>;
 

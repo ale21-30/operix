@@ -92,5 +92,48 @@ router.put('/empleados/:id/estado', verificarToken, soloAdmin, async (req, res) 
     res.status(500).json({ error: 'Error del servidor' });
   }
 });
+const https = require('https');
+
+router.get('/ml/resumen', verificarToken, soloAdmin, async (req, res) => {
+  try {
+    const url = 'https://modelo-python-production.up.railway.app/resumen-ml';
+    https.get(url, (response) => {
+      let data = '';
+      response.on('data', chunk => data += chunk);
+      response.on('end', () => {
+        try {
+          res.json(JSON.parse(data));
+        } catch (e) {
+          res.status(500).json({ error: 'Error parseando respuesta ML' });
+        }
+      });
+    }).on('error', (err) => {
+      res.status(500).json({ error: 'No se puede conectar al servidor ML' });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+router.get('/ml/entrenar', verificarToken, soloAdmin, async (req, res) => {
+  try {
+    const url = 'https://modelo-python-production.up.railway.app/entrenar';
+    https.get(url, (response) => {
+      let data = '';
+      response.on('data', chunk => data += chunk);
+      response.on('end', () => {
+        try {
+          res.json(JSON.parse(data));
+        } catch (e) {
+          res.status(500).json({ error: 'Error parseando respuesta ML' });
+        }
+      });
+    }).on('error', (err) => {
+      res.status(500).json({ error: 'No se puede conectar al servidor ML' });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
 
 module.exports = router;
