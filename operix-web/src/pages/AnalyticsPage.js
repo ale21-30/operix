@@ -34,10 +34,10 @@ const cargarDatos = async () => {
     if (data.ok) {
       setDatos(data);
     } else {
-      setError(data.error);
+      setError(data.error || JSON.stringify(data));
     }
   } catch (err) {
-    setError('No se puede conectar con el servidor ML.');
+    setError(`Error: ${err.message}`);  // ← muestra el error real
   } finally {
     setCargando(false);
   }
