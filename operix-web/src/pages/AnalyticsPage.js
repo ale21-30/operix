@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const ML_URL = 'http://localhost:5000';
+const ML_URL = 'https://modelo-python-production.up.railway.app';
 
 const COLORES_CATEGORIA = {
   'Puntual':             '#1D9E75',
