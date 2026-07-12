@@ -76,35 +76,39 @@ def analisis_descriptivo():
     }
 
 def predecir_puntualidad_empleados():
-    """Predice la categoría de puntualidad para cada empleado"""
     import pickle
-    
+    import os
+
     try:
         with open('models/modelo_puntualidad.pkl', 'rb') as f:
             datos_modelo = pickle.load(f)
     except FileNotFoundError:
         return [], 0
+
+    modelo      = datos_modelo['modelo']
+    le_sede     = datos_modelo['le_sede']
+    le_emp      = datos_modelo['le_emp']
+    scaler      = datos_modelo.get('scaler', None)
+    usar_scaler = datos_modelo.get('usar_scaler', False)
+    etiquetas   = datos_modelo.get('etiquetas', {0:'Puntual',1:'Tardanza leve',2:'Tardanza frecuente'})
     
-    modelo    = datos_modelo['modelo']
-    le_sede   = datos_modelo['le_sede']
-    le_emp    = datos_modelo['le_emp']
-    accuracy  = datos_modelo['accuracy']
-    etiquetas = datos_modelo['etiquetas']
-    
+    # Obtiene accuracy de forma segura
+    metricas  = datos_modelo.get('metricas', {})
+    accuracy  = metricas.get('accuracy', 0) / 100 if metricas else 0
+
     df = obtener_datos_asistencia()
     if df.empty:
         return [], accuracy
-    
+
     df['minutos_entrada'] = df['hora_entrada'] * 60 + df['minuto_entrada']
-    
-    # Estadísticas por empleado para predicción
+
     stats = df.groupby(['usuario_id', 'empleado', 'sede']).agg(
         minutos_entrada=('minutos_entrada', 'mean'),
         dia_semana=('dia_semana', 'median'),
         duracion_minutos=('duracion_minutos', 'mean'),
         total_turnos=('id', 'count')
     ).reset_index()
-    
+
     resultados = []
     for _, row in stats.iterrows():
         try:
@@ -112,7 +116,7 @@ def predecir_puntualidad_empleados():
                 if row['sede'] in le_sede.classes_ else 0
             emp_enc  = le_emp.transform([row['empleado']])[0] \
                 if row['empleado'] in le_emp.classes_ else 0
-            
+
             X_pred = [[
                 row['minutos_entrada'],
                 row['dia_semana'],
@@ -120,24 +124,27 @@ def predecir_puntualidad_empleados():
                 emp_enc,
                 row['duracion_minutos']
             ]]
-            
+
+            if usar_scaler and scaler:
+                import numpy as np
+                X_pred = scaler.transform(X_pred)
+
             pred  = modelo.predict(X_pred)[0]
             proba = modelo.predict_proba(X_pred)[0]
-            
             hora_prom = row['minutos_entrada']
-            
+
             resultados.append({
-                'empleado':      row['empleado'],
-                'sede':          row['sede'],
-                'total_turnos':  int(row['total_turnos']),
-                'hora_promedio': f"{int(hora_prom//60):02d}:{int(hora_prom%60):02d}",
-                'categoria':     etiquetas[pred],
-                'confianza':     round(float(max(proba)) * 100, 1),
-                'categoria_id':  int(pred)
+                'empleado':     row['empleado'],
+                'sede':         row['sede'],
+                'total_turnos': int(row['total_turnos']),
+                'hora_promedio':f"{int(hora_prom//60):02d}:{int(hora_prom%60):02d}",
+                'categoria':    etiquetas[pred],
+                'confianza':    round(float(max(proba)) * 100, 1),
+                'categoria_id': int(pred)
             })
         except Exception as e:
             continue
-    
+
     return resultados, accuracy
 
 if __name__ == '__main__':
