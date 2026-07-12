@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const ML_URL = 'https://operix-production-052c.up.railway.app/api/admin';
 
 const COLORES_CATEGORIA = {
   'Puntual':             '#1D9E75',
