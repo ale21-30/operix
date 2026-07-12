@@ -1,12 +1,29 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, json
+from flask.json.provider import DefaultJSONProvider
 from flask_cors import CORS
 from analisis import analisis_descriptivo, predecir_puntualidad_empleados
 from modelo import entrenar_modelos
 import os
 import pickle
+import math
+
+class CustomJSONProvider(DefaultJSONProvider):
+    def dumps(self, obj, **kwargs):
+        def clean(o):
+            if isinstance(o, dict):
+                return {k: clean(v) for k, v in o.items()}
+            elif isinstance(o, list):
+                return [clean(v) for v in o]
+            elif isinstance(o, float) and (math.isnan(o) or math.isinf(o)):
+                return None
+            return o
+        return json.dumps(clean(obj), **kwargs)
 
 app = Flask(__name__)
+app.json_provider_class = CustomJSONProvider
+app.json = CustomJSONProvider(app)
 CORS(app, resources={r"/*": {"origins": "*"}})
+
 @app.route('/')
 def home():
     return jsonify({'mensaje': 'API ML Operix funcionando ✓'})
@@ -67,13 +84,8 @@ def get_comparacion():
 @app.route('/resumen-ml')
 def get_resumen_ml():
     try:
-               # Siempre reentrena para asegurar estructura correcta
         stats = analisis_descriptivo()
-        entrenar_modelos()  # ← agrega esta línea
-        predicciones, accuracy = predecir_puntualidad_empleados()
-        stats = analisis_descriptivo()
-        if not os.path.exists('models/modelo_puntualidad.pkl'):
-            entrenar_modelos()
+        entrenar_modelos()
         predicciones, accuracy = predecir_puntualidad_empleados()
         with open('models/modelo_puntualidad.pkl', 'rb') as f:
             datos = pickle.load(f)

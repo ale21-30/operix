@@ -1,6 +1,18 @@
 import pandas as pd
 import numpy as np
+import json
+import math
 from data import obtener_datos_asistencia, conectar_bd
+
+def limpiar_nan(obj):
+    """Reemplaza NaN e Infinity por None para JSON válido"""
+    if isinstance(obj, dict):
+        return {k: limpiar_nan(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [limpiar_nan(v) for v in obj]
+    elif isinstance(obj, float) and (math.isnan(obj) or math.isinf(obj)):
+        return None
+    return obj
 
 def analisis_descriptivo():
     """Genera estadísticas descriptivas completas"""
