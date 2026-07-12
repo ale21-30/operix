@@ -1,55 +1,58 @@
-from flask import Flask, jsonify, json
-from flask.json.provider import DefaultJSONProvider
+import json as stdlib_json
+import math
+import os
+import pickle
+
+from flask import Flask, Response
 from flask_cors import CORS
 from analisis import analisis_descriptivo, predecir_puntualidad_empleados
 from modelo import entrenar_modelos
-import os
-import pickle
-import math
-
-class CustomJSONProvider(DefaultJSONProvider):
-    def dumps(self, obj, **kwargs):
-        def clean(o):
-            if isinstance(o, dict):
-                return {k: clean(v) for k, v in o.items()}
-            elif isinstance(o, list):
-                return [clean(v) for v in o]
-            elif isinstance(o, float) and (math.isnan(o) or math.isinf(o)):
-                return None
-            return o
-        return json.dumps(clean(obj), **kwargs)
 
 app = Flask(__name__)
-app.json_provider_class = CustomJSONProvider
-app.json = CustomJSONProvider(app)
 CORS(app, resources={r"/*": {"origins": "*"}})
+
+def json_response(data, status=200):
+    """Serializa a JSON limpiando NaN e Infinity"""
+    def clean(o):
+        if isinstance(o, dict):
+            return {k: clean(v) for k, v in o.items()}
+        elif isinstance(o, list):
+            return [clean(v) for v in o]
+        elif isinstance(o, float) and (math.isnan(o) or math.isinf(o)):
+            return None
+        return o
+    return Response(
+        stdlib_json.dumps(clean(data)),
+        status=status,
+        mimetype='application/json'
+    )
 
 @app.route('/')
 def home():
-    return jsonify({'mensaje': 'API ML Operix funcionando ✓'})
+    return json_response({'mensaje': 'API ML Operix funcionando ✓'})
 
 @app.route('/analisis')
 def get_analisis():
     try:
         stats = analisis_descriptivo()
-        return jsonify({ 'ok': True, 'data': stats })
+        return json_response({'ok': True, 'data': stats})
     except Exception as e:
-        return jsonify({ 'ok': False, 'error': str(e) }), 500
+        return json_response({'ok': False, 'error': str(e)}, 500)
 
 @app.route('/entrenar')
 def get_entrenar():
     try:
-        mejor_modelo, mejor_metricas, m_arbol, m_logistica = entrenar_modelos()
-        return jsonify({
-            'ok':        True,
-            'mensaje':   'Modelos entrenados correctamente',
+        _, _, m_arbol, m_logistica = entrenar_modelos()
+        return json_response({
+            'ok': True,
+            'mensaje': 'Modelos entrenados correctamente',
             'comparacion': {
-                'arbol':    { 'accuracy': m_arbol['accuracy'],    'f1': m_arbol['f1'] },
-                'logistica':{ 'accuracy': m_logistica['accuracy'],'f1': m_logistica['f1'] }
+                'arbol':     {'accuracy': m_arbol['accuracy'],     'f1': m_arbol['f1']},
+                'logistica': {'accuracy': m_logistica['accuracy'], 'f1': m_logistica['f1']}
             }
         })
     except Exception as e:
-        return jsonify({ 'ok': False, 'error': str(e) }), 500
+        return json_response({'ok': False, 'error': str(e)}, 500)
 
 @app.route('/predicciones')
 def get_predicciones():
@@ -57,13 +60,13 @@ def get_predicciones():
         if not os.path.exists('models/modelo_puntualidad.pkl'):
             entrenar_modelos()
         predicciones, accuracy = predecir_puntualidad_empleados()
-        return jsonify({
-            'ok':           True,
+        return json_response({
+            'ok': True,
             'predicciones': predicciones,
-            'accuracy':     round(accuracy * 100, 1)
+            'accuracy': round(accuracy * 100, 1)
         })
     except Exception as e:
-        return jsonify({ 'ok': False, 'error': str(e) }), 500
+        return json_response({'ok': False, 'error': str(e)}, 500)
 
 @app.route('/comparacion')
 def get_comparacion():
@@ -72,14 +75,14 @@ def get_comparacion():
             entrenar_modelos()
         with open('models/modelo_puntualidad.pkl', 'rb') as f:
             datos = pickle.load(f)
-        return jsonify({
-            'ok':          True,
+        return json_response({
+            'ok': True,
             'comparacion': datos.get('comparacion', {}),
-            'mejor':       datos.get('nombre', 'Árbol de Decisión'),
-            'metricas':    datos.get('metricas', {})
+            'mejor': datos.get('nombre', 'Árbol de Decisión'),
+            'metricas': datos.get('metricas', {})
         })
     except Exception as e:
-        return jsonify({ 'ok': False, 'error': str(e) }), 500
+        return json_response({'ok': False, 'error': str(e)}, 500)
 
 @app.route('/resumen-ml')
 def get_resumen_ml():
@@ -89,16 +92,16 @@ def get_resumen_ml():
         predicciones, accuracy = predecir_puntualidad_empleados()
         with open('models/modelo_puntualidad.pkl', 'rb') as f:
             datos = pickle.load(f)
-        return jsonify({
-            'ok':          True,
-            'analisis':    stats,
-            'predicciones':predicciones,
-            'accuracy':    round(accuracy * 100, 1),
+        return json_response({
+            'ok': True,
+            'analisis': stats,
+            'predicciones': predicciones,
+            'accuracy': round(accuracy * 100, 1),
             'comparacion': datos.get('comparacion', {}),
-            'mejor':       datos.get('nombre', 'Árbol de Decisión')
+            'mejor': datos.get('nombre', 'Árbol de Decisión')
         })
     except Exception as e:
-        return jsonify({ 'ok': False, 'error': str(e) }), 500
+        return json_response({'ok': False, 'error': str(e)}, 500)
 
 if __name__ == '__main__':
     print("🤖 Iniciando API ML Operix en http://localhost:5000")
