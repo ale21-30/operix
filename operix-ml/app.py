@@ -68,6 +68,10 @@ def get_comparacion():
 @app.route('/resumen-ml')
 def get_resumen_ml():
     try:
+               # Siempre reentrena para asegurar estructura correcta
+        stats = analisis_descriptivo()
+        entrenar_modelos()  # ← agrega esta línea
+        predicciones, accuracy = predecir_puntualidad_empleados()
         stats = analisis_descriptivo()
         if not os.path.exists('models/modelo_puntualidad.pkl'):
             entrenar_modelos()
