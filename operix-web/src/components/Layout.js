@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext';
 export default function Layout() {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
-  const [menuAbierto, setMenuAbierto] = useState(false);
 
   const handleLogout = () => {
     logout();

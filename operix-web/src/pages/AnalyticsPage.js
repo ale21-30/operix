@@ -1,13 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, PieChart, Pie,
-  Cell, Legend
-} from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const ML_URL = 'http://localhost:5000';
 
-const COLORES = ['#1D9E75', '#BA7517', '#E24B4A', '#185FA5', '#533AB7'];
 const COLORES_CATEGORIA = {
   'Puntual':             '#1D9E75',
   'Tardanza leve':       '#BA7517',
@@ -79,12 +74,6 @@ export default function AnalyticsPage() {
   const { analisis, predicciones, accuracy } = datos;
 
   // Datos para gráfico de puntualidad por categoría
-  const datosCategoria = predicciones.reduce((acc, p) => {
-    const existente = acc.find(a => a.name === p.categoria);
-    if (existente) existente.value++;
-    else acc.push({ name: p.categoria, value: 1 });
-    return acc;
-  }, []);
 
   return (
     <div style={s.container}>
