@@ -1,8 +1,9 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 from analisis import analisis_descriptivo, predecir_puntualidad_empleados
-from modelo import entrenar_modelo, cargar_modelo
+from modelo import entrenar_modelos
 import os
+import pickle
 
 app = Flask(__name__)
 CORS(app)
@@ -13,7 +14,6 @@ def home():
 
 @app.route('/analisis')
 def get_analisis():
-    """Retorna el análisis descriptivo completo"""
     try:
         stats = analisis_descriptivo()
         return jsonify({ 'ok': True, 'data': stats })
@@ -22,25 +22,24 @@ def get_analisis():
 
 @app.route('/entrenar')
 def get_entrenar():
-    """Entrena o re-entrena el modelo"""
     try:
-        modelo, accuracy, df = entrenar_modelo()
+        mejor_modelo, mejor_metricas, m_arbol, m_logistica = entrenar_modelos()
         return jsonify({
-            'ok':       True,
-            'accuracy': round(accuracy * 100, 1),
-            'mensaje':  f'Modelo entrenado con {accuracy*100:.1f}% de accuracy'
+            'ok':        True,
+            'mensaje':   'Modelos entrenados correctamente',
+            'comparacion': {
+                'arbol':    { 'accuracy': m_arbol['accuracy'],    'f1': m_arbol['f1'] },
+                'logistica':{ 'accuracy': m_logistica['accuracy'],'f1': m_logistica['f1'] }
+            }
         })
     except Exception as e:
         return jsonify({ 'ok': False, 'error': str(e) }), 500
 
 @app.route('/predicciones')
 def get_predicciones():
-    """Retorna las predicciones de puntualidad por empleado"""
     try:
-        # Entrena si no existe el modelo
         if not os.path.exists('models/modelo_puntualidad.pkl'):
-            entrenar_modelo()
-        
+            entrenar_modelos()
         predicciones, accuracy = predecir_puntualidad_empleados()
         return jsonify({
             'ok':           True,
@@ -50,22 +49,38 @@ def get_predicciones():
     except Exception as e:
         return jsonify({ 'ok': False, 'error': str(e) }), 500
 
+@app.route('/comparacion')
+def get_comparacion():
+    try:
+        if not os.path.exists('models/modelo_puntualidad.pkl'):
+            entrenar_modelos()
+        with open('models/modelo_puntualidad.pkl', 'rb') as f:
+            datos = pickle.load(f)
+        return jsonify({
+            'ok':          True,
+            'comparacion': datos.get('comparacion', {}),
+            'mejor':       datos.get('nombre', 'Árbol de Decisión'),
+            'metricas':    datos.get('metricas', {})
+        })
+    except Exception as e:
+        return jsonify({ 'ok': False, 'error': str(e) }), 500
+
 @app.route('/resumen-ml')
 def get_resumen_ml():
-    """Endpoint combinado para el dashboard — análisis + predicciones"""
     try:
-        stats        = analisis_descriptivo()
-        
+        stats = analisis_descriptivo()
         if not os.path.exists('models/modelo_puntualidad.pkl'):
-            entrenar_modelo()
-        
+            entrenar_modelos()
         predicciones, accuracy = predecir_puntualidad_empleados()
-        
+        with open('models/modelo_puntualidad.pkl', 'rb') as f:
+            datos = pickle.load(f)
         return jsonify({
-            'ok':           True,
-            'analisis':     stats,
-            'predicciones': predicciones,
-            'accuracy':     round(accuracy * 100, 1)
+            'ok':          True,
+            'analisis':    stats,
+            'predicciones':predicciones,
+            'accuracy':    round(accuracy * 100, 1),
+            'comparacion': datos.get('comparacion', {}),
+            'mejor':       datos.get('nombre', 'Árbol de Decisión')
         })
     except Exception as e:
         return jsonify({ 'ok': False, 'error': str(e) }), 500

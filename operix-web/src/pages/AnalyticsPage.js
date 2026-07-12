@@ -19,23 +19,23 @@ export default function AnalyticsPage() {
     cargarDatos();
   }, []);
 
-  const cargarDatos = async () => {
-    setCargando(true);
-    setError(null);
-    try {
-      const res = await fetch(`${ML_URL}/resumen-ml`);
-      const data = await res.json();
-      if (data.ok) {
-        setDatos(data);
-      } else {
-        setError(data.error);
-      }
-    } catch (err) {
-      setError('No se puede conectar con el servidor ML. Verifica que esté corriendo en puerto 5000.');
-    } finally {
-      setCargando(false);
+const cargarDatos = async () => {
+  setCargando(true);
+  setError(null);
+  try {
+    const res = await fetch(`${ML_URL}/resumen-ml`);
+    const data = await res.json();
+    if (data.ok) {
+      setDatos(data);
+    } else {
+      setError(data.error);
     }
-  };
+  } catch (err) {
+    setError('No se puede conectar con el servidor ML. Verifica que esté corriendo en puerto 5000.');
+  } finally {
+    setCargando(false);
+  }
+};
 
   const reentrenar = async () => {
     setEntrenando(true);
@@ -253,6 +253,99 @@ export default function AnalyticsPage() {
           </div>
         </div>
       )}
+
+      {/* Comparación de modelos */}
+{datos.comparacion && Object.keys(datos.comparacion).length > 0 && (
+  <div style={s.card}>
+    <h3 style={s.cardTitulo}>
+      🏆 Comparación de Modelos ML
+      <span style={{
+        ...s.accuracyBadge,
+        background: '#E6F1FB',
+        color: '#0C447C',
+        marginLeft: 12
+      }}>
+        Mejor: {datos.mejor}
+      </span>
+    </h3>
+    <p style={s.cardDesc}>
+      Se entrenaron y evaluaron dos modelos de clasificación supervisada.
+      El sistema selecciona automáticamente el de mejor desempeño según F1-Score.
+    </p>
+
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+      {Object.values(datos.comparacion).map((modelo, i) => (
+        <div key={i} style={{
+          border: `2px solid ${modelo.nombre === datos.mejor ? '#1D9E75' : '#E0E0E0'}`,
+          borderRadius: 12,
+          padding: 20,
+          background: modelo.nombre === datos.mejor ? '#F0FBF6' : '#FAFAFA',
+          position: 'relative'
+        }}>
+          {modelo.nombre === datos.mejor && (
+            <span style={{
+              position: 'absolute', top: 12, right: 12,
+              background: '#1D9E75', color: '#fff',
+              fontSize: 11, fontWeight: '700',
+              padding: '3px 10px', borderRadius: 20
+            }}>
+              ✓ SELECCIONADO
+            </span>
+          )}
+          <h4 style={{
+            fontSize: 15, fontWeight: '600',
+            color: modelo.nombre === datos.mejor ? '#04342C' : '#444',
+            marginBottom: 16
+          }}>
+            {i === 0 ? '🌳' : '📈'} {modelo.nombre}
+          </h4>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            {[
+              { label: 'Accuracy',  valor: modelo.accuracy },
+              { label: 'Precision', valor: modelo.precision },
+              { label: 'Recall',    valor: modelo.recall },
+              { label: 'F1-Score',  valor: modelo.f1 },
+            ].map((m, j) => (
+              <div key={j} style={{
+                background: '#fff', borderRadius: 8,
+                padding: '10px 14px', textAlign: 'center',
+                border: '1px solid #E0E0E0'
+              }}>
+                <div style={{
+                  fontSize: 20, fontWeight: 'bold',
+                  color: modelo.nombre === datos.mejor ? '#1D9E75' : '#533AB7'
+                }}>
+                  {m.valor}%
+                </div>
+                <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>
+                  {m.label}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{
+            marginTop: 12, fontSize: 11,
+            color: '#888', fontStyle: 'italic'
+          }}>
+            Parámetros: {modelo.params}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div style={{
+      background: '#F0F7F4', borderRadius: 8,
+      padding: '12px 16px', fontSize: 13,
+      color: '#444', lineHeight: 1.6,
+      borderLeft: '4px solid #04342C'
+    }}>
+      <strong>¿Por qué {datos.mejor}?</strong>{' '}
+      {datos.mejor === 'Árbol de Decisión'
+        ? 'El Árbol de Decisión obtuvo mejor F1-Score en este conjunto de datos. Además ofrece mayor interpretabilidad: las reglas de decisión son visibles y explicables a la administración sin conocimientos técnicos.'
+        : 'La Regresión Logística obtuvo mejor F1-Score en este conjunto de datos. Es especialmente efectiva cuando las clases tienen distribuciones linealmente separables en el espacio de features.'}
+    </div>
+  </div>
+)}
 
       {/* Nota metodológica */}
       <div style={s.nota}>

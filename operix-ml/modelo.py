@@ -1,82 +1,91 @@
 import pandas as pd
 import numpy as np
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
-from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import (classification_report, accuracy_score,
+                              precision_score, recall_score, f1_score)
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 import pickle
 import os
 from data import obtener_datos_asistencia
 
-# ─────────────────────────────────────────
-# ETIQUETADO DE PUNTUALIDAD
-# Basado en la hora de entrada
-# Puntual:          entrada antes de las 8:30 (510 min)
-# Tardanza leve:    entrada entre 8:30 y 9:00 (510-540 min)
-# Tardanza frecuente: entrada después de las 9:00 (540+ min)
-# ─────────────────────────────────────────
-
 def etiquetar_puntualidad(minutos_entrada):
-    """Clasifica la puntualidad según la hora de entrada"""
-    if minutos_entrada <= 510:      # 8:30 AM
+    if minutos_entrada <= 510:
         return 0  # Puntual
-    elif minutos_entrada <= 540:    # 9:00 AM
+    elif minutos_entrada <= 540:
         return 1  # Tardanza leve
     else:
         return 2  # Tardanza frecuente
 
 def preparar_features(df):
-    """Prepara las características para el modelo"""
     df = df.copy()
-    
-    # Convierte hora y minuto a minutos totales desde medianoche
     df['minutos_entrada'] = df['hora_entrada'] * 60 + df['minuto_entrada']
-    
-    # Etiqueta la puntualidad
     df['puntualidad'] = df['minutos_entrada'].apply(etiquetar_puntualidad)
-    
-    # Codifica la sede
+
     le_sede = LabelEncoder()
-    df['sede_encoded'] = le_sede.fit_transform(df['sede'])
-    
-    # Codifica el empleado
-    le_emp = LabelEncoder()
+    le_emp  = LabelEncoder()
+    df['sede_encoded']     = le_sede.fit_transform(df['sede'])
     df['empleado_encoded'] = le_emp.fit_transform(df['empleado'])
-    
-    # Features finales
-    features = ['minutos_entrada', 'dia_semana', 'sede_encoded', 
-                 'empleado_encoded', 'duracion_minutos']
-    
+
+    features = ['minutos_entrada', 'dia_semana', 'sede_encoded',
+                'empleado_encoded', 'duracion_minutos']
     X = df[features].fillna(0)
     y = df['puntualidad']
-    
     return X, y, df, le_sede, le_emp
 
-def entrenar_modelo():
-    """Entrena el modelo de clasificación"""
+def generar_datos_ejemplo():
+    np.random.seed(42)
+    n = 150
+    data = {
+        'usuario_id':       np.random.choice([1, 2, 3], n),
+        'empleado':         np.random.choice(['Empleado A', 'Empleado B', 'Empleado C'], n),
+        'sede':             np.random.choice(['Sede 1', 'Sede 2'], n),
+        'hora_entrada':     np.random.choice([7, 8, 8, 8, 9, 9, 10], n),
+        'minuto_entrada':   np.random.choice([0, 15, 30, 45], n),
+        'dia_semana':       np.random.choice([2, 3, 4, 5, 6], n),
+        'duracion_minutos': np.random.normal(480, 60, n).astype(int),
+        'estado':           ['completado'] * n
+    }
+    return pd.DataFrame(data)
+
+def evaluar_modelo(modelo, X_test, y_test, clases_presentes, etiquetas_todas):
+    y_pred = modelo.predict(X_test)
+    etiquetas_presentes = [etiquetas_todas[c] for c in clases_presentes]
+
+    return {
+        'accuracy':  round(accuracy_score(y_test, y_pred) * 100, 1),
+        'precision': round(precision_score(y_test, y_pred, average='weighted',
+                           labels=clases_presentes, zero_division=0) * 100, 1),
+        'recall':    round(recall_score(y_test, y_pred, average='weighted',
+                           labels=clases_presentes, zero_division=0) * 100, 1),
+        'f1':        round(f1_score(y_test, y_pred, average='weighted',
+                           labels=clases_presentes, zero_division=0) * 100, 1),
+        'reporte':   classification_report(y_test, y_pred,
+                           labels=clases_presentes,
+                           target_names=etiquetas_presentes,
+                           zero_division=0)
+    }
+
+def entrenar_modelos():
     print("📊 Cargando datos de asistencia...")
     df = obtener_datos_asistencia()
-    print(f"✓ {len(df)} registros cargados")
+    print(f"✓ {len(df)} registros reales cargados")
 
-    # Si hay pocos datos reales, combina con datos sintéticos
     if len(df) < 10:
-        print("⚠️  Pocos datos reales. Combinando con datos sintéticos...")
-        df_sint = generar_datos_ejemplo()
-        df = pd.concat([df, df_sint], ignore_index=True)
+        print("⚠️  Combinando con datos sintéticos...")
+        df = pd.concat([df, generar_datos_ejemplo()], ignore_index=True)
 
     X, y, df_prep, le_sede, le_emp = preparar_features(df)
 
-    # Clases presentes en los datos
     clases_presentes = sorted(y.unique())
     etiquetas_todas  = {0: 'Puntual', 1: 'Tardanza leve', 2: 'Tardanza frecuente'}
-    etiquetas_presentes = [etiquetas_todas[c] for c in clases_presentes]
 
     print(f"\n📈 Distribución de clases:")
     for k in clases_presentes:
         v = (y == k).sum()
         print(f"   {etiquetas_todas[k]}: {v} registros ({v/len(y)*100:.1f}%)")
 
-    # División train/test
     if len(X) >= 10 and len(clases_presentes) > 1:
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.2, random_state=42, stratify=y
@@ -85,67 +94,86 @@ def entrenar_modelo():
         X_train, X_test = X, X
         y_train, y_test = y, y
 
-    # Entrena árbol de decisión
-    print("\n🌳 Entrenando árbol de decisión...")
-    modelo = DecisionTreeClassifier(
+    # ── MODELO 1: Árbol de Decisión ──
+    print("\n🌳 Entrenando Árbol de Decisión...")
+    arbol = DecisionTreeClassifier(
         max_depth=5,
         min_samples_split=2,
         min_samples_leaf=1,
         random_state=42
     )
-    modelo.fit(X_train, y_train)
+    arbol.fit(X_train, y_train)
+    metricas_arbol = evaluar_modelo(arbol, X_test, y_test,
+                                    clases_presentes, etiquetas_todas)
+    print(f"   Accuracy: {metricas_arbol['accuracy']}%")
 
-    # Evaluación — solo con clases presentes
-    y_pred   = modelo.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
+    # ── MODELO 2: Regresión Logística ──
+    print("\n📈 Entrenando Regresión Logística...")
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled  = scaler.transform(X_test)
 
-    print(f"\n✅ Accuracy del modelo: {accuracy*100:.1f}%")
-    print("\n📋 Reporte de clasificación:")
-    print(classification_report(
-        y_test, y_pred,
-        labels=clases_presentes,
-        target_names=etiquetas_presentes,
-        zero_division=0
-    ))
+    logistica = LogisticRegression(
+        max_iter=1000,
+        random_state=42,
+        multi_class='multinomial',
+        solver='lbfgs'
+    )
+    logistica.fit(X_train_scaled, y_train)
+    metricas_logistica = evaluar_modelo(logistica, X_test_scaled, y_test,
+                                         clases_presentes, etiquetas_todas)
+    print(f"   Accuracy: {metricas_logistica['accuracy']}%")
 
-    # Guarda el modelo
+    # ── Selección del mejor modelo ──
+    if metricas_arbol['f1'] >= metricas_logistica['f1']:
+        mejor_modelo   = arbol
+        mejor_nombre   = 'Árbol de Decisión'
+        mejor_metricas = metricas_arbol
+        usar_scaler    = False
+    else:
+        mejor_modelo   = logistica
+        mejor_nombre   = 'Regresión Logística'
+        mejor_metricas = metricas_logistica
+        usar_scaler    = True
+
+    print(f"\n🏆 Mejor modelo: {mejor_nombre} (F1: {mejor_metricas['f1']}%)")
+
+    # ── Guarda todo ──
     os.makedirs('models', exist_ok=True)
     with open('models/modelo_puntualidad.pkl', 'wb') as f:
         pickle.dump({
-            'modelo':    modelo,
-            'le_sede':   le_sede,
-            'le_emp':    le_emp,
-            'features':  ['minutos_entrada', 'dia_semana', 'sede_encoded',
-                          'empleado_encoded', 'duracion_minutos'],
-            'accuracy':  accuracy,
-            'etiquetas': etiquetas_todas
+            'modelo':       mejor_modelo,
+            'nombre':       mejor_nombre,
+            'le_sede':      le_sede,
+            'le_emp':       le_emp,
+            'scaler':       scaler if usar_scaler else None,
+            'usar_scaler':  usar_scaler,
+            'features':     ['minutos_entrada', 'dia_semana', 'sede_encoded',
+                             'empleado_encoded', 'duracion_minutos'],
+            'etiquetas':    etiquetas_todas,
+            'metricas':     mejor_metricas,
+            'comparacion': {
+                'arbol': {
+                    'nombre':    'Árbol de Decisión',
+                    'accuracy':  metricas_arbol['accuracy'],
+                    'precision': metricas_arbol['precision'],
+                    'recall':    metricas_arbol['recall'],
+                    'f1':        metricas_arbol['f1'],
+                    'params':    'max_depth=5, min_samples_split=2'
+                },
+                'logistica': {
+                    'nombre':    'Regresión Logística',
+                    'accuracy':  metricas_logistica['accuracy'],
+                    'precision': metricas_logistica['precision'],
+                    'recall':    metricas_logistica['recall'],
+                    'f1':        metricas_logistica['f1'],
+                    'params':    'max_iter=1000, solver=lbfgs, multi_class=multinomial'
+                }
+            }
         }, f)
 
-    print("\n💾 Modelo guardado en models/modelo_puntualidad.pkl")
-    return modelo, accuracy, df_prep
-
-def generar_datos_ejemplo():
-    """Genera datos sintéticos para cuando hay pocos registros reales"""
-    np.random.seed(42)
-    n = 100
-    
-    data = {
-        'usuario_id':       np.random.choice([1], n),
-        'empleado':         np.random.choice(['Administrador'], n),
-        'sede':             np.random.choice(['Sede de Prueba'], n),
-        'hora_entrada':     np.random.choice([7, 8, 8, 8, 9, 9, 10], n),
-        'minuto_entrada':   np.random.choice([0, 15, 30, 45], n),
-        'dia_semana':       np.random.choice([2, 3, 4, 5, 6], n),
-        'duracion_minutos': np.random.normal(480, 60, n).astype(int),
-        'estado':           ['completado'] * n
-    }
-    
-    return pd.DataFrame(data)
-
-def cargar_modelo():
-    """Carga el modelo entrenado"""
-    with open('models/modelo_puntualidad.pkl', 'rb') as f:
-        return pickle.load(f)
+    print("💾 Modelo guardado")
+    return mejor_modelo, mejor_metricas, metricas_arbol, metricas_logistica
 
 if __name__ == '__main__':
-    entrenar_modelo()
+    entrenar_modelos()
