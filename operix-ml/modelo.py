@@ -114,10 +114,9 @@ def entrenar_modelos():
     X_test_scaled  = scaler.transform(X_test)
 
     logistica = LogisticRegression(
-        max_iter=1000,
-        random_state=42,
-        multi_class='multinomial',
-        solver='lbfgs'
+    max_iter=1000,
+    random_state=42,
+    solver='lbfgs'
     )
     logistica.fit(X_train_scaled, y_train)
     metricas_logistica = evaluar_modelo(logistica, X_test_scaled, y_test,
