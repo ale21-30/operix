@@ -6,8 +6,7 @@ import os
 import pickle
 
 app = Flask(__name__)
-CORS(app)
-
+CORS(app, resources={r"/*": {"origins": "*"}})
 @app.route('/')
 def home():
     return jsonify({'mensaje': 'API ML Operix funcionando ✓'})
