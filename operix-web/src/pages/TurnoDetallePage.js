@@ -10,7 +10,7 @@ export default function TurnoDetallePage() {
   const [cargando,   setCargando]   = useState(true);
   const [fotoAmpliada, setFotoAmpliada] = useState(null);
 
-  useEffect(() => { cargarDetalle(); }, [id]);
+  useEffect(() => { cargarDetalle(); }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cargarDetalle = async () => {
     try {
