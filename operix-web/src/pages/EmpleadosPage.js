@@ -22,14 +22,27 @@ export default function EmpleadosPage() {
     }
   };
 
+  const handleSubirFoto = async (empId, e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const formData = new FormData();
+  formData.append('foto', file);
+  try {
+    await api.post(`/admin/empleados/${empId}/foto`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    cargarEmpleados();
+  } catch (err) {
+    alert('Error al subir foto');
+  }
+};
+
   const handleGuardar = async (e) => {
     e.preventDefault();
     setError('');
     setGuardando(true);
     try {
       await api.post('/admin/empleados', form);
-      setModal(false);
-      setForm({ nombre:'', email:'', password:'', rol:'empleado' });
       cargarEmpleados();
       setModal(false);
 setForm({ nombre:'', email:'', password:'', rol:'empleado' });
@@ -76,44 +89,64 @@ if (window.confirm('¿Deseas agregar el horario del nuevo empleado ahora?')) {
         ) : empleados.length === 0 ? (
           <div style={s.vacio}>No hay empleados registrados</div>
         ) : empleados.map((emp, i) => (
-          <div key={i} style={s.card}>
-            <div style={s.cardAvatar}>
-              {emp.nombre?.charAt(0) || '?'}
-            </div>
-            <div style={s.cardInfo}>
-              <div style={s.cardNombre}>{emp.nombre}</div>
-              <div style={s.cardEmail}>{emp.email}</div>
-              <span style={{
-                ...s.badge,
-                background: emp.rol === 'admin' ? '#E6F1FB' : '#E1F5EE',
-                color:      emp.rol === 'admin' ? '#0C447C' : '#085041',
-              }}>
-                {emp.rol}
-              </span>
-            </div>
-            <div style={s.cardAcciones}>
-              <div style={{
-                ...s.statusDot,
-                background: emp.activo ? '#1D9E75' : '#E24B4A'
-              }} title={emp.activo ? 'Activo' : 'Inactivo'} />
-              <button
-                onClick={() => handleToggleEstado(emp)}
-                style={{
-                  padding: '5px 12px',
-                  fontSize: 12,
-                  cursor: 'pointer',
-                  borderRadius: 6,
-                  border: 'none',
-                  background: emp.activo ? '#FCEBEB' : '#E1F5EE',
-                  color: emp.activo ? '#A32D2D' : '#085041',
-                  fontWeight: '600',
-                  marginTop: 6,
-                }}
-              >
-                {emp.activo ? 'Desactivar' : 'Activar'}
-              </button>
-            </div>
-          </div>
+<div key={i} style={s.card}>
+
+  <div style={{ position: 'relative', flexShrink: 0 }}>
+    {emp.foto_perfil ? (
+      <img
+        src={emp.foto_perfil}
+        alt={emp.nombre}
+        style={{
+          width: 52,
+          height: 52,
+          borderRadius: '50%',
+          objectFit: 'cover',
+          border: '2px solid #04342C'
+        }}
+      />
+    ) : (
+      <div style={s.cardAvatar}>
+        {emp.nombre?.charAt(0) || '?'}
+      </div>
+    )}
+
+    <label
+      style={{
+        position: 'absolute',
+        bottom: -4,
+        right: -4,
+        background: '#04342C',
+        borderRadius: '50%',
+        width: 22,
+        height: 22,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        fontSize: 11,
+        color: '#fff'
+      }}
+      title="Cambiar foto"
+    >
+      📷
+      <input
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={(e) => handleSubirFoto(emp.id, e)}
+      />
+    </label>
+  </div>
+
+  <div style={s.cardInfo}>
+    ...
+  </div>
+
+  <div style={s.cardAcciones}>
+    ...
+  </div>
+
+</div>
         ))}
       </div>
 

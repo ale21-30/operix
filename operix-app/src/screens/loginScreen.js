@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import * as SecureStore from 'expo-secure-store';
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, ActivityIndicator, Alert,
@@ -23,6 +24,8 @@ const handleLogin = async () => {
     const respuesta = await login(email.trim().toLowerCase(), password);
     await guardarToken(respuesta.token);
 
+    // Guarda datos del usuario
+    await SecureStore.setItemAsync('operix_usuario', JSON.stringify(respuesta.usuario));
     // Si es primer login redirige a cambiar contraseña
     if (respuesta.usuario.primer_login) {
       navigation.replace('CambiarPassword', { 
