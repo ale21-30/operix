@@ -192,7 +192,7 @@ const reentrenar = async () => {
                     <td style={s.td}><strong>{p.empleado}</strong></td>
                     <td style={s.td}>{p.sede}</td>
                     <td style={s.td}>{p.total_turnos}</td>
-                    <td style={s.td}>{emp.horario_esperado_fmt || '--'}</td>
+                    <td style={s.td}>{p.horario_esperado_fmt || '--'}</td>
                     <td style={s.td}>{p.hora_promedio}</td>
                     <td style={s.td}>
                       <span style={{
