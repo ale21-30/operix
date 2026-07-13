@@ -62,7 +62,8 @@ const getTurnos = async (req, res) => {
 const getEmpleados = async (req, res) => {
   try {
     const [empleados] = await pool.query(
-      `SELECT id, nombre, email, rol, activo FROM usuarios ORDER BY nombre`
+      `SELECT id, nombre, email, rol, activo, foto_perfil 
+       FROM usuarios ORDER BY nombre`
     );
     res.json({ empleados });
   } catch (err) {

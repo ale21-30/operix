@@ -36,11 +36,12 @@ const [rows] = await pool.query(
     // Responde con el token y datos básicos del usuario
   res.json({
   token,
-  usuario: {
+    usuario: {
     id:           usuario.id,
     nombre:       usuario.nombre,
     rol:          usuario.rol,
-    primer_login: usuario.primer_login  // ← agrega esto
+    primer_login: usuario.primer_login,
+    foto_perfil:  usuario.foto_perfil
   }
 });
 

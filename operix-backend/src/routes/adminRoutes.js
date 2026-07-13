@@ -239,4 +239,38 @@ router.get('/turnos/:id/detalle', verificarToken, soloAdmin, async (req, res) =>
   }
 });
 
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key:    process.env.CLOUDINARY_KEY,
+  api_secret: process.env.CLOUDINARY_SECRET,
+});
+
+router.post('/empleados/:id/foto', verificarToken, soloAdmin,
+  require('multer')({ storage: require('multer').memoryStorage() }).single('foto'),
+  async (req, res) => {
+    try {
+      const pool = require('../config/db');
+      if (!req.file) return res.status(400).json({ error: 'No se recibió foto' });
+
+      const url = await new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+          { folder: 'operix/perfiles', transformation: [{ width: 400, height: 400, crop: 'fill' }] },
+          (err, result) => err ? reject(err) : resolve(result.secure_url)
+        );
+        stream.end(req.file.buffer);
+      });
+
+      await pool.query('UPDATE usuarios SET foto_perfil = ? WHERE id = ?', [url, req.params.id]);
+      res.json({ mensaje: 'Foto actualizada', url });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Error al subir foto' });
+    }
+  }
+);
+
+// Actualiza endpoint de empleados para incluir foto_perfil
+
 module.exports = router;
