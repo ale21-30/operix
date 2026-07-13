@@ -15,76 +15,76 @@ def limpiar_nan(obj):
     return obj
 
 def analisis_descriptivo():
-    """Genera estadísticas descriptivas completas"""
     df = obtener_datos_asistencia()
-    
+
     if df.empty:
-        return {
-            'total_turnos': 0,
-            'mensaje': 'No hay datos suficientes aún'
-        }
-    
-    df['minutos_entrada'] = df['hora_entrada'] * 60 + df['minuto_entrada']
-    df['hora_entrada_fmt'] = df['hora_entrada'].apply(
-        lambda h: f"{h:02d}:00"
-    )
-    
-    # KPIs generales
-    total_turnos    = len(df)
-    promedio_horas  = round(df['duracion_minutos'].mean() / 60, 2) if 'duracion_minutos' in df else 0
-    
-    # Puntualidad global (antes de las 9:00 = 540 min)
-    puntuales = len(df[df['minutos_entrada'] <= 540])
+        return { 'total_turnos': 0, 'mensaje': 'No hay datos suficientes aún' }
+
+    df['minutos_entrada']  = df['hora_entrada'] * 60 + df['minuto_entrada']
+    df['minutos_esperado'] = df['minutos_horario_esperado'].fillna(480)
+    df['diferencia']       = df['minutos_entrada'] - df['minutos_esperado']
+
+    total_turnos   = len(df)
+    promedio_horas = round(df['duracion_minutos'].mean() / 60, 2) if 'duracion_minutos' in df else 0
+
+    # Puntual = llega con menos de 10 min de retraso respecto a SU horario
+    puntuales      = len(df[df['diferencia'] <= 10])
     pct_puntualidad = round(puntuales / total_turnos * 100, 1) if total_turnos > 0 else 0
-    
+
     # Distribución por hora de entrada
     dist_hora = df['hora_entrada'].value_counts().sort_index()
     distribucion_hora = [
         {'hora': f"{int(h):02d}:00", 'cantidad': int(v)}
         for h, v in dist_hora.items()
     ]
-    
-    # Distribución por día de semana
-    dias = {2:'Lunes', 3:'Martes', 4:'Miércoles', 5:'Jueves', 6:'Viernes', 7:'Sábado', 1:'Domingo'}
+
+    # Distribución por día
+    dias = {2:'Lunes', 3:'Martes', 4:'Miércoles', 5:'Jueves',
+            6:'Viernes', 7:'Sábado', 1:'Domingo'}
     dist_dia = df['dia_semana'].value_counts().sort_index()
     distribucion_dia = [
         {'dia': dias.get(int(d), str(d)), 'cantidad': int(v)}
         for d, v in dist_dia.items()
     ]
-    
-    # Estadísticas por empleado
+
+    # Estadísticas por empleado — respecto a SU horario
+    import numpy as np
     stats_emp = df.groupby('empleado').agg(
         total_turnos=('id', 'count'),
         promedio_entrada_min=('minutos_entrada', 'mean'),
-        desviacion_entrada=('minutos_entrada', 'std'),
+        promedio_esperado=('minutos_esperado', 'mean'),
+        diferencia_promedio=('diferencia', 'mean'),
     ).reset_index()
-    
+
     stats_emp['promedio_entrada_fmt'] = stats_emp['promedio_entrada_min'].apply(
         lambda m: f"{int(m//60):02d}:{int(m%60):02d}" if not np.isnan(m) else '--'
     )
+    stats_emp['horario_esperado_fmt'] = stats_emp['promedio_esperado'].apply(
+        lambda m: f"{int(m//60):02d}:{int(m%60):02d}" if not np.isnan(m) else '--'
+    )
     stats_emp['tardanzas'] = df.groupby('empleado').apply(
-        lambda x: (x['minutos_entrada'] > 540).sum()
+        lambda x: (x['diferencia'] > 10).sum()
     ).values
     stats_emp['pct_puntualidad'] = stats_emp.apply(
         lambda r: round((r['total_turnos'] - r['tardanzas']) / r['total_turnos'] * 100, 1)
         if r['total_turnos'] > 0 else 0, axis=1
     )
-    
+
     empleados_stats = stats_emp.to_dict('records')
-    
-    # Turnos por sede
+
+    # Por sede
     por_sede = df['sede'].value_counts().reset_index()
     por_sede.columns = ['sede', 'cantidad']
     turnos_por_sede = por_sede.to_dict('records')
-    
+
     return {
-        'total_turnos':       total_turnos,
-        'promedio_horas':     promedio_horas,
-        'pct_puntualidad':    pct_puntualidad,
-        'distribucion_hora':  distribucion_hora,
-        'distribucion_dia':   distribucion_dia,
-        'empleados_stats':    empleados_stats,
-        'turnos_por_sede':    turnos_por_sede,
+        'total_turnos':      total_turnos,
+        'promedio_horas':    promedio_horas,
+        'pct_puntualidad':   pct_puntualidad,
+        'distribucion_hora': distribucion_hora,
+        'distribucion_dia':  distribucion_dia,
+        'empleados_stats':   empleados_stats,
+        'turnos_por_sede':   turnos_por_sede,
     }
 
 def predecir_puntualidad_empleados():

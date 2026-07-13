@@ -10,10 +10,17 @@ import pickle
 import os
 from data import obtener_datos_asistencia
 
-def etiquetar_puntualidad(minutos_entrada):
-    if minutos_entrada <= 510:
+def etiquetar_puntualidad_relativa(minutos_real, minutos_esperado):
+    """
+    Clasifica puntualidad respecto al horario real del empleado.
+    Puntual:            hasta 10 min de retraso
+    Tardanza leve:      entre 10 y 30 min de retraso
+    Tardanza frecuente: más de 30 min de retraso
+    """
+    diferencia = minutos_real - minutos_esperado
+    if diferencia <= 10:
         return 0  # Puntual
-    elif minutos_entrada <= 540:
+    elif diferencia <= 30:
         return 1  # Tardanza leve
     else:
         return 2  # Tardanza frecuente
@@ -21,15 +28,30 @@ def etiquetar_puntualidad(minutos_entrada):
 def preparar_features(df):
     df = df.copy()
     df['minutos_entrada'] = df['hora_entrada'] * 60 + df['minuto_entrada']
-    df['puntualidad'] = df['minutos_entrada'].apply(etiquetar_puntualidad)
+
+    # Usa horario esperado si existe, sino usa 8:00 AM como default
+    df['minutos_esperado'] = df['minutos_horario_esperado'].fillna(480)
+
+    # Calcula diferencia respecto al horario real
+    df['diferencia_minutos'] = df['minutos_entrada'] - df['minutos_esperado']
+
+    # Etiqueta según horario real de cada empleado
+    df['puntualidad'] = df.apply(
+        lambda row: etiquetar_puntualidad_relativa(
+            row['minutos_entrada'],
+            row['minutos_esperado']
+        ), axis=1
+    )
 
     le_sede = LabelEncoder()
     le_emp  = LabelEncoder()
     df['sede_encoded']     = le_sede.fit_transform(df['sede'])
     df['empleado_encoded'] = le_emp.fit_transform(df['empleado'])
 
-    features = ['minutos_entrada', 'dia_semana', 'sede_encoded',
+    # Features — ahora incluye diferencia respecto al horario esperado
+    features = ['diferencia_minutos', 'dia_semana', 'sede_encoded',
                 'empleado_encoded', 'duracion_minutos']
+
     X = df[features].fillna(0)
     y = df['puntualidad']
     return X, y, df, le_sede, le_emp
