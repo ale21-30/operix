@@ -11,6 +11,7 @@ import Layout       from './components/Layout';
 import AnalyticsPage from './pages/AnalyticsPage';
 import TurnosActivosPage from './pages/TurnosActivosPage';
 import HorariosPage from './pages/HorariosPage';
+import TurnoDetallePage from './pages/TurnoDetallePage';
 
 function RutaProtegida({ children }) {
   const { usuario, cargando } = useAuth();
@@ -38,6 +39,7 @@ export default function App() {
             <Route path="analytics" element={<AnalyticsPage />} />
             <Route path="turnos-activos" element={<TurnosActivosPage />} />
             <Route path="horarios" element={<HorariosPage />} />
+            <Route path="turnos/:id" element={<TurnoDetallePage />} />
           </Route>
         </Routes>
       </BrowserRouter>

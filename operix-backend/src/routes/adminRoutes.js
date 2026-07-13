@@ -208,4 +208,35 @@ router.delete('/horarios/:id', verificarToken, soloAdmin, async (req, res) => {
   }
 });
 
+router.get('/turnos/:id/detalle', verificarToken, soloAdmin, async (req, res) => {
+  try {
+    const pool = require('../config/db');
+    const { id } = req.params;
+
+    const [turnos] = await pool.query(`
+      SELECT t.*, u.nombre AS empleado, s.nombre AS sede,
+             ROUND(TIMESTAMPDIFF(MINUTE, t.entrada_hora,
+               COALESCE(t.salida_hora, NOW())) / 60, 2) AS horas_trabajadas
+      FROM turnos t
+      JOIN usuarios u ON t.usuario_id = u.id
+      JOIN sedes s ON t.sede_id = s.id
+      WHERE t.id = ?
+    `, [id]);
+
+    if (turnos.length === 0) {
+      return res.status(404).json({ error: 'Turno no encontrado' });
+    }
+
+    const [novedades] = await pool.query(
+      'SELECT * FROM novedades WHERE turno_id = ? ORDER BY creado_en ASC',
+      [id]
+    );
+
+    res.json({ turno: turnos[0], novedades });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
 module.exports = router;
