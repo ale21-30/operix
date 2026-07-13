@@ -136,4 +136,76 @@ router.get('/ml/entrenar', verificarToken, soloAdmin, async (req, res) => {
   }
 });
 
+// Obtener horarios de todos los empleados
+router.get('/horarios', verificarToken, soloAdmin, async (req, res) => {
+  try {
+    const pool = require('../config/db');
+    const [horarios] = await pool.query(`
+      SELECT 
+        h.id, u.id AS usuario_id, u.nombre AS empleado,
+        u.email, s.id AS sede_id, s.nombre AS sede,
+        h.hora_entrada, h.hora_salida, h.dias, h.activo
+      FROM horarios h
+      JOIN usuarios u ON h.usuario_id = u.id
+      JOIN sedes s ON h.sede_id = s.id
+      ORDER BY u.nombre, s.nombre
+    `);
+    res.json({ horarios });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+// Crear horario
+router.post('/horarios', verificarToken, soloAdmin, async (req, res) => {
+  try {
+    const pool = require('../config/db');
+    const { usuario_id, sede_id, hora_entrada, hora_salida, dias } = req.body;
+    if (!usuario_id || !sede_id || !hora_entrada || !hora_salida || !dias) {
+      return res.status(400).json({ error: 'Todos los campos son requeridos' });
+    }
+    await pool.query(
+      `INSERT INTO horarios (usuario_id, sede_id, hora_entrada, hora_salida, dias)
+       VALUES (?, ?, ?, ?, ?)`,
+      [usuario_id, sede_id, hora_entrada, hora_salida, dias]
+    );
+    res.json({ mensaje: 'Horario creado correctamente' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+// Actualizar horario
+router.put('/horarios/:id', verificarToken, soloAdmin, async (req, res) => {
+  try {
+    const pool = require('../config/db');
+    const { id } = req.params;
+    const { hora_entrada, hora_salida, dias, activo } = req.body;
+    await pool.query(
+      `UPDATE horarios 
+       SET hora_entrada = ?, hora_salida = ?, dias = ?, activo = ?
+       WHERE id = ?`,
+      [hora_entrada, hora_salida, dias, activo, id]
+    );
+    res.json({ mensaje: 'Horario actualizado correctamente' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
+// Eliminar horario
+router.delete('/horarios/:id', verificarToken, soloAdmin, async (req, res) => {
+  try {
+    const pool = require('../config/db');
+    await pool.query('DELETE FROM horarios WHERE id = ?', [req.params.id]);
+    res.json({ mensaje: 'Horario eliminado' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
 module.exports = router;

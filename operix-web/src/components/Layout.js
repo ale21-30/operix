@@ -18,6 +18,7 @@ export default function Layout() {
     { path: '/sedes',     label: 'Sedes',      icono: '📍' },
     { path: '/analytics',  label: 'Analítica ML', icono: '🤖' }, 
     { path: '/turnos-activos', label: 'Turnos Activos', icono: '🟢' },
+    { path: '/horarios', label: 'Horarios', icono: '📅' },
   ];
 
   return (

@@ -31,6 +31,13 @@ export default function EmpleadosPage() {
       setModal(false);
       setForm({ nombre:'', email:'', password:'', rol:'empleado' });
       cargarEmpleados();
+      setModal(false);
+setForm({ nombre:'', email:'', password:'', rol:'empleado' });
+cargarEmpleados();
+// Pregunta si quiere agregar horario
+if (window.confirm('¿Deseas agregar el horario del nuevo empleado ahora?')) {
+  window.location.href = '/horarios';
+}
     } catch (err) {
       setError(err.response?.data?.error || 'Error al crear empleado');
     } finally {
