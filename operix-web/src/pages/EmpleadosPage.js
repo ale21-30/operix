@@ -216,7 +216,7 @@ const s = {
   sub:         { fontSize: 14, color: '#888', marginTop: 4 },
   botonNuevo:  { padding: '10px 20px', background: '#04342C', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: '600', cursor: 'pointer' },
 
-  grid:        { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 },
+  grid:        { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: 16 },
   cargando:    { padding: 40, textAlign: 'center', color: '#888', gridColumn: '1/-1' },
   vacio:       { padding: 40, textAlign: 'center', color: '#888', gridColumn: '1/-1' },
 
@@ -226,6 +226,7 @@ const s = {
     display: 'flex', alignItems: 'center', gap: 16,
     boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
     overflow: 'visible',
+    minWidth: 0,
   },
 
   // Avatar
@@ -264,6 +265,7 @@ const s = {
     padding: '7px 14px', fontSize: 12, fontWeight: '600',
     border: 'none', borderRadius: 8, cursor: 'pointer',
     flexShrink: 0, whiteSpace: 'nowrap',
+    alignSelf: 'center', 
   },
 
   // Modal
