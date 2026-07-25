@@ -108,7 +108,7 @@ export default function HomeScreen({ navigation }) {
             <Image source={logo} style={styles.logo} resizeMode="contain" />
           )}
           <View style={styles.headerTexto}>
-            <Text style={styles.hola}>¡Bienvenida, {primerNombre}! 👋</Text>
+            <Text style={styles.hola}>¡Bienvenida/o, {primerNombre}! 👋</Text>
             <Text style={styles.fecha}>
               {new Date().toLocaleDateString('es-EC', {
                 weekday: 'long', day: 'numeric', month: 'long'
