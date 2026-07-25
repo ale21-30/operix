@@ -73,7 +73,7 @@ export default function EmpleadosPage() {
       <div style={s.header}>
         <div>
           <h1 style={s.titulo}>Empleados</h1>
-          <p style={s.sub}>Gestión del personal registrado</p>
+          <p style={s.sub}>Gestión del personal registrado — {empleados.length} registrados</p>
         </div>
         <button onClick={() => setModal(true)} style={s.botonNuevo}>
           + Nuevo empleado
@@ -88,33 +88,22 @@ export default function EmpleadosPage() {
         ) : empleados.map((emp, i) => (
           <div key={i} style={s.card}>
 
-            {/* Avatar con botón de foto */}
-            <div style={{ position: 'relative', flexShrink: 0 }}>
+            {/* Foto de perfil */}
+            <div style={s.avatarWrapper}>
               {emp.foto_perfil ? (
                 <img
                   src={emp.foto_perfil}
                   alt={emp.nombre}
-                  style={{
-                    width: 56, height: 56, borderRadius: '50%',
-                    objectFit: 'cover', border: '2px solid #04342C'
-                  }}
+                  style={s.avatarImg}
                 />
               ) : (
-                <div style={s.cardAvatar}>
-                  {emp.nombre?.charAt(0) || '?'}
+                <div style={s.avatarLetra}>
+                  {emp.nombre?.charAt(0)?.toUpperCase() || '?'}
                 </div>
               )}
-              <label
-                style={{
-                  position: 'absolute', bottom: -2, right: -2,
-                  background: '#04342C', borderRadius: '50%',
-                  width: 22, height: 22,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  cursor: 'pointer', fontSize: 11, color: '#fff',
-                  border: '2px solid #fff'
-                }}
-                title="Cambiar foto de perfil"
-              >
+
+              {/* Botón para subir foto */}
+              <label style={s.botonFoto} title="Subir foto de perfil">
                 📷
                 <input
                   type="file"
@@ -125,45 +114,45 @@ export default function EmpleadosPage() {
               </label>
             </div>
 
-            {/* Info */}
+            {/* Info del empleado */}
             <div style={s.cardInfo}>
               <div style={s.cardNombre}>{emp.nombre}</div>
               <div style={s.cardEmail}>{emp.email}</div>
-              <span style={{
-                ...s.badge,
-                background: emp.rol === 'admin' ? '#E6F1FB' : '#E1F5EE',
-                color:      emp.rol === 'admin' ? '#0C447C' : '#085041',
-              }}>
-                {emp.rol}
-              </span>
+              <div style={s.cardFooter}>
+                <span style={{
+                  ...s.badge,
+                  background: emp.rol === 'admin' ? '#E6F1FB' : '#E1F5EE',
+                  color:      emp.rol === 'admin' ? '#0C447C' : '#085041',
+                }}>
+                  {emp.rol}
+                </span>
+                <span style={{
+                  ...s.badge,
+                  background: emp.activo ? '#E1F5EE' : '#FCEBEB',
+                  color:      emp.activo ? '#085041' : '#A32D2D',
+                }}>
+                  {emp.activo ? '● Activo' : '○ Inactivo'}
+                </span>
+              </div>
             </div>
 
-            {/* Acciones */}
-            <div style={s.cardAcciones}>
-              <div style={{
-                width: 10, height: 10, borderRadius: '50%',
-                background: emp.activo ? '#1D9E75' : '#E24B4A',
-                marginBottom: 6
-              }} title={emp.activo ? 'Activo' : 'Inactivo'} />
-              <button
-                onClick={() => handleToggleEstado(emp)}
-                style={{
-                  padding: '5px 12px', fontSize: 11,
-                  cursor: 'pointer', borderRadius: 6, border: 'none',
-                  background: emp.activo ? '#FCEBEB' : '#E1F5EE',
-                  color: emp.activo ? '#A32D2D' : '#085041',
-                  fontWeight: '600', whiteSpace: 'nowrap'
-                }}
-              >
-                {emp.activo ? 'Desactivar' : 'Activar'}
-              </button>
-            </div>
+            {/* Botón toggle estado */}
+            <button
+              onClick={() => handleToggleEstado(emp)}
+              style={{
+                ...s.botonToggle,
+                background: emp.activo ? '#FCEBEB' : '#E1F5EE',
+                color:      emp.activo ? '#A32D2D' : '#085041',
+              }}
+            >
+              {emp.activo ? 'Desactivar' : 'Activar'}
+            </button>
 
           </div>
         ))}
       </div>
 
-      {/* Modal */}
+      {/* Modal nuevo empleado */}
       {modal && (
         <div style={s.overlay} onClick={() => setModal(false)}>
           <div style={s.modal} onClick={e => e.stopPropagation()}>
@@ -172,26 +161,34 @@ export default function EmpleadosPage() {
               {error && <div style={s.error}>{error}</div>}
               <div style={s.campo}>
                 <label style={s.label}>Nombre completo</label>
-                <input required style={s.input} value={form.nombre}
+                <input
+                  required style={s.input} value={form.nombre}
                   onChange={e => setForm({ ...form, nombre: e.target.value })}
-                  placeholder="Ej: María González" />
+                  placeholder="Ej: María González"
+                />
               </div>
               <div style={s.campo}>
                 <label style={s.label}>Correo electrónico</label>
-                <input required type="email" style={s.input} value={form.email}
+                <input
+                  required type="email" style={s.input} value={form.email}
                   onChange={e => setForm({ ...form, email: e.target.value })}
-                  placeholder="maria@correo.com" />
+                  placeholder="maria@correo.com"
+                />
               </div>
               <div style={s.campo}>
                 <label style={s.label}>Contraseña inicial</label>
-                <input required type="password" style={s.input} value={form.password}
+                <input
+                  required type="password" style={s.input} value={form.password}
                   onChange={e => setForm({ ...form, password: e.target.value })}
-                  placeholder="Mínimo 6 caracteres" minLength={6} />
+                  placeholder="Mínimo 6 caracteres" minLength={6}
+                />
               </div>
               <div style={s.campo}>
                 <label style={s.label}>Rol</label>
-                <select style={s.input} value={form.rol}
-                  onChange={e => setForm({ ...form, rol: e.target.value })}>
+                <select
+                  style={s.input} value={form.rol}
+                  onChange={e => setForm({ ...form, rol: e.target.value })}
+                >
                   <option value="empleado">Empleado</option>
                   <option value="admin">Administrador</option>
                 </select>
@@ -213,30 +210,63 @@ export default function EmpleadosPage() {
 }
 
 const s = {
-  container:    { padding: 32 },
-  header:       { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 },
-  titulo:       { fontSize: 28, fontWeight: 'bold', color: '#04342C', margin: 0 },
-  sub:          { fontSize: 14, color: '#888', marginTop: 4 },
-  botonNuevo:   { padding: '10px 20px', background: '#04342C', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: '600', cursor: 'pointer' },
-  grid:         { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 16 },
-  cargando:     { padding: 40, textAlign: 'center', color: '#888', gridColumn: '1/-1' },
-  vacio:        { padding: 40, textAlign: 'center', color: '#888', gridColumn: '1/-1' },
-  card:         {
-    background: '#fff', borderRadius: 12, padding: '16px 20px',
-    display: 'flex', alignItems: 'center', gap: 14,
+  container:   { padding: 32 },
+  header:      { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 },
+  titulo:      { fontSize: 28, fontWeight: 'bold', color: '#04342C', margin: 0 },
+  sub:         { fontSize: 14, color: '#888', marginTop: 4 },
+  botonNuevo:  { padding: '10px 20px', background: '#04342C', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: '600', cursor: 'pointer' },
+
+  grid:        { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 },
+  cargando:    { padding: 40, textAlign: 'center', color: '#888', gridColumn: '1/-1' },
+  vacio:       { padding: 40, textAlign: 'center', color: '#888', gridColumn: '1/-1' },
+
+  card:        {
+    background: '#fff', borderRadius: 12,
+    padding: '16px 20px',
+    display: 'flex', alignItems: 'center', gap: 16,
     boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+    overflow: 'visible',
   },
-  cardAvatar:   {
-    width: 56, height: 56, borderRadius: '50%',
+
+  // Avatar
+  avatarWrapper: {
+    position: 'relative', flexShrink: 0,
+    width: 64, height: 64,
+  },
+  avatarImg:   {
+    width: 64, height: 64, borderRadius: '50%',
+    objectFit: 'cover', border: '3px solid #04342C',
+    display: 'block',
+  },
+  avatarLetra: {
+    width: 64, height: 64, borderRadius: '50%',
     background: '#04342C', color: '#fff',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: 22, fontWeight: 'bold', flexShrink: 0,
+    fontSize: 24, fontWeight: 'bold',
   },
-  cardInfo:     { flex: 1, minWidth: 0 },
-  cardNombre:   { fontSize: 14, fontWeight: '600', color: '#222', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-  cardEmail:    { fontSize: 12, color: '#888', marginTop: 2, marginBottom: 6, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-  badge:        { padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: '600' },
-  cardAcciones: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, flexShrink: 0 },
+  botonFoto:   {
+    position: 'absolute', bottom: -2, right: -2,
+    width: 24, height: 24, borderRadius: '50%',
+    background: '#1D9E75', border: '2px solid #fff',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    cursor: 'pointer', fontSize: 12, zIndex: 10,
+  },
+
+  // Info
+  cardInfo:    { flex: 1, minWidth: 0 },
+  cardNombre:  { fontSize: 14, fontWeight: '700', color: '#222', marginBottom: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  cardEmail:   { fontSize: 12, color: '#888', marginBottom: 8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  cardFooter:  { display: 'flex', gap: 6, flexWrap: 'wrap' },
+  badge:       { padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: '600' },
+
+  // Botón toggle
+  botonToggle: {
+    padding: '7px 14px', fontSize: 12, fontWeight: '600',
+    border: 'none', borderRadius: 8, cursor: 'pointer',
+    flexShrink: 0, whiteSpace: 'nowrap',
+  },
+
+  // Modal
   overlay:      { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
   modal:        { background: '#fff', borderRadius: 16, padding: 32, width: '100%', maxWidth: 440, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' },
   modalTitulo:  { fontSize: 22, fontWeight: 'bold', color: '#04342C', marginBottom: 24 },
