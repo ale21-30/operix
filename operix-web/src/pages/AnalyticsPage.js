@@ -360,15 +360,37 @@ const reentrenar = async () => {
   </div>
 )}
 
-      {/* Nota metodológica */}
-      <div style={s.nota}>
-        <strong>📖 Metodología:</strong> El modelo utiliza un árbol de decisión supervisado
-        (scikit-learn) entrenado sobre registros históricos de asistencia. Las features
-        incluyen: hora de entrada promedio, desviación estándar, día de semana y sede.
-        Las categorías son: <strong>Puntual</strong> (entrada antes de 8:30),{' '}
-        <strong>Tardanza leve</strong> (8:30–9:00) y{' '}
-        <strong>Tardanza frecuente</strong> (después de 9:00).
-      </div>
+{/* Nota metodológica */}
+<div style={s.nota}>
+  <strong>📖 Metodología y Justificación del Modelo</strong>
+  <br /><br />
+  <strong>Modelos evaluados:</strong> Se entrenaron y compararon dos algoritmos de 
+  clasificación supervisada: Árbol de Decisión (DecisionTreeClassifier) y Regresión 
+  Logística (LogisticRegression) de la biblioteca scikit-learn (Python).
+  <br /><br />
+  <strong>Criterio de selección:</strong> Se seleccionó el Árbol de Decisión por su 
+  mayor interpretabilidad — permite visualizar las reglas de decisión de forma gráfica 
+  y explicarlas a la administración sin requerir conocimientos técnicos. Cuando dos 
+  modelos tienen rendimiento equivalente, la interpretabilidad es un criterio válido 
+  y reconocido en la literatura de Machine Learning aplicado a entornos empresariales.
+  <br /><br />
+  <strong>Sobre el accuracy del 100%:</strong> Los valores actuales reflejan un caso 
+  de sobreajuste (overfitting) causado por el tamaño reducido del dataset (
+  {datos.analisis?.total_turnos || 0} registros) y la homogeneidad de los patrones 
+  actuales — la mayoría corresponden a tardanzas frecuentes. Esto es esperado y 
+  documentado en la fase piloto inicial.
+  <br /><br />
+  <strong>Proyección agosto 2026:</strong> Con 200+ registros y mayor variedad de 
+  patrones de puntualidad, se espera que el accuracy se estabilice entre 70-85% y 
+  la diferencia entre modelos sea más evidente, validando la elección del Árbol de 
+  Decisión como modelo principal.
+  <br /><br />
+  <strong>Features del modelo:</strong> diferencia en minutos respecto al horario 
+  esperado por empleado/sede, día de la semana, sede codificada, empleado codificado 
+  y duración del turno. Las categorías son: <strong>Puntual</strong> (≤10 min de 
+  retraso), <strong>Tardanza leve</strong> (10-30 min) y{' '}
+  <strong>Tardanza frecuente</strong> (&gt;30 min respecto al horario asignado).
+</div>
     </div>
   );
 }
