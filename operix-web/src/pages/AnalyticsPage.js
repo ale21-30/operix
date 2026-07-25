@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Cell } from 'recharts';
 
 
 const COLORES_CATEGORIA = {
@@ -158,6 +159,106 @@ const reentrenar = async () => {
           </ResponsiveContainer>
         </div>
       </div>
+
+{/* Análisis de Ubicación */}
+{datos.ubicacion && datos.ubicacion.total > 0 && (
+  <div style={s.card}>
+    <h3 style={s.cardTitulo}>
+      📍 Análisis de Ubicación GPS
+      <span style={{ ...s.accuracyBadge, marginLeft: 12 }}>
+        {datos.ubicacion.pct_en_sede}% en sede
+      </span>
+    </h3>
+    <p style={s.cardDesc}>
+      Distancia entre la ubicación GPS registrada al marcar entrada y la sede asignada.
+      Tolerancia definida: ≤50m en sede, 50-200m cerca, 200-500m moderado, &gt;500m lejos.
+    </p>
+
+    {/* KPIs ubicación */}
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
+      {[
+        { label: 'En sede ≤50m',    valor: datos.ubicacion.en_sede,       color: '#1D9E75' },
+        { label: 'Cerca 50-200m',   valor: datos.ubicacion.cerca,         color: '#185FA5' },
+        { label: 'Moderado 200-500m',valor: datos.ubicacion.moderado,     color: '#BA7517' },
+        { label: 'Lejos >500m',     valor: datos.ubicacion.lejos,         color: '#E24B4A' },
+      ].map((k, i) => (
+        <div key={i} style={{
+          background: '#F9F9F9', borderRadius: 10,
+          padding: '14px 16px', textAlign: 'center',
+          borderTop: `3px solid ${k.color}`
+        }}>
+          <div style={{ fontSize: 28, fontWeight: 'bold', color: k.color }}>
+            {k.valor}
+          </div>
+          <div style={{ fontSize: 11, color: '#888', marginTop: 4 }}>{k.label}</div>
+        </div>
+      ))}
+    </div>
+
+    {/* Gráfico de barras */}
+    <ResponsiveContainer width="100%" height={180}>
+      <BarChart data={datos.ubicacion.distribucion}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" />
+        <XAxis dataKey="rango" tick={{ fontSize: 11 }} />
+        <YAxis tick={{ fontSize: 11 }} />
+        <Tooltip />
+        <Bar dataKey="cantidad" name="Registros" radius={[4,4,0,0]}>
+          {datos.ubicacion.distribucion.map((entry, i) => (
+            <Cell key={i} fill={entry.color} />
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+
+    {/* Tabla por empleado */}
+    <h4 style={{ fontSize: 14, fontWeight: '600', color: '#04342C', margin: '20px 0 10px' }}>
+      Detalle por empleado
+    </h4>
+    <div style={s.tablaWrapper}>
+      <table style={s.t}>
+        <thead>
+          <tr style={s.trHead}>
+            <th style={s.th}>Empleado</th>
+            <th style={s.th}>Registros</th>
+            <th style={s.th}>Dist. promedio</th>
+            <th style={s.th}>Dist. máxima</th>
+            <th style={s.th}>% En sede</th>
+          </tr>
+        </thead>
+        <tbody>
+          {datos.ubicacion.empleados_ubicacion.map((emp, i) => (
+            <tr key={i} style={{ borderBottom: '1px solid #F0F0F0' }}>
+              <td style={s.td}><strong>{emp.empleado}</strong></td>
+              <td style={s.td}>{emp.total_registros}</td>
+              <td style={s.td}>
+                <span style={{
+                  color: emp.distancia_promedio <= 50  ? '#1D9E75' :
+                         emp.distancia_promedio <= 200 ? '#185FA5' :
+                         emp.distancia_promedio <= 500 ? '#BA7517' : '#E24B4A',
+                  fontWeight: '600'
+                }}>
+                  {emp.distancia_promedio}m
+                </span>
+              </td>
+              <td style={s.td}>{emp.distancia_maxima}m</td>
+              <td style={s.td}>
+                <div style={s.barraConfianza}>
+                  <div style={{
+                    ...s.barraRelleno,
+                    width: `${emp.pct_en_sede}%`,
+                    background: emp.pct_en_sede >= 80 ? '#1D9E75' :
+                                emp.pct_en_sede >= 50 ? '#BA7517' : '#E24B4A'
+                  }} />
+                  <span style={s.barraTexto}>{emp.pct_en_sede}%</span>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
 
       {/* Predicciones ML */}
       <div style={s.card}>

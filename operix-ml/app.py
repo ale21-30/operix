@@ -7,6 +7,7 @@ from flask import Flask, Response
 from flask_cors import CORS
 from analisis import analisis_descriptivo, predecir_puntualidad_empleados
 from modelo import entrenar_modelos
+from analisis import analisis_descriptivo, predecir_puntualidad_empleados, analisis_ubicacion
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -84,10 +85,20 @@ def get_comparacion():
     except Exception as e:
         return json_response({'ok': False, 'error': str(e)}, 500)
 
+
+@app.route('/ubicacion')
+def get_ubicacion():
+    try:
+        data = analisis_ubicacion()
+        return json_response({'ok': True, 'data': data})
+    except Exception as e:
+        return json_response({'ok': False, 'error': str(e)}, 500)
+
 @app.route('/resumen-ml')
 def get_resumen_ml():
     try:
         stats = analisis_descriptivo()
+        ubicacion   = analisis_ubicacion() 
         entrenar_modelos()
         predicciones, accuracy = predecir_puntualidad_empleados()
         with open('models/modelo_puntualidad.pkl', 'rb') as f:
@@ -95,6 +106,7 @@ def get_resumen_ml():
         return json_response({
             'ok': True,
             'analisis': stats,
+            'ubicacion':   ubicacion,
             'predicciones': predicciones,
             'accuracy': round(accuracy * 100, 1),
             'comparacion': datos.get('comparacion', {}),
@@ -106,3 +118,5 @@ def get_resumen_ml():
 if __name__ == '__main__':
     print("🤖 Iniciando API ML Operix en http://localhost:5000")
     app.run(debug=True, port=5000)
+
+    

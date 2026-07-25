@@ -165,3 +165,109 @@ if __name__ == '__main__':
     print(f"   Total turnos:    {stats['total_turnos']}")
     print(f"   Promedio horas:  {stats['promedio_horas']}h")
     print(f"   % Puntualidad:   {stats['pct_puntualidad']}%")
+
+def analisis_ubicacion():
+    """Analiza la distancia entre ubicacion de entrada y sede asignada"""
+    import math
+    
+    conn = conectar_bd()
+    query = """
+        SELECT 
+            u.nombre AS empleado,
+            s.nombre AS sede,
+            t.entrada_lat,
+            t.entrada_lng,
+            s.latitud AS sede_lat,
+            s.longitud AS sede_lng,
+            t.entrada_hora
+        FROM turnos t
+        JOIN usuarios u ON t.usuario_id = u.id
+        JOIN sedes s ON t.sede_id = s.id
+        WHERE t.entrada_lat IS NOT NULL
+        AND t.entrada_lng IS NOT NULL
+        AND t.estado = 'completado'
+        ORDER BY t.entrada_hora DESC
+    """
+    df = pd.read_sql(query, conn)
+    conn.close()
+
+    if df.empty:
+        return {'total': 0, 'mensaje': 'No hay datos de ubicacion'}
+
+    def haversine(lat1, lon1, lat2, lon2):
+        R = 6371000
+        φ1 = math.radians(float(lat1))
+        φ2 = math.radians(float(lat2))
+        Δφ = math.radians(float(lat2) - float(lat1))
+        Δλ = math.radians(float(lon2) - float(lon1))
+        a = math.sin(Δφ/2)**2 + math.cos(φ1)*math.cos(φ2)*math.sin(Δλ/2)**2
+        return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+
+    df['distancia_metros'] = df.apply(
+        lambda r: haversine(r['entrada_lat'], r['entrada_lng'],
+                           r['sede_lat'], r['sede_lng']), axis=1
+    )
+
+    # Clasificacion por rango
+    def clasificar(d):
+        if d <= 50:   return 'En sede'
+        elif d <= 200: return 'Cerca'
+        elif d <= 500: return 'Moderado'
+        else:          return 'Lejos'
+
+    df['rango'] = df['distancia_metros'].apply(clasificar)
+
+    # KPIs
+    total           = len(df)
+    en_sede         = len(df[df['rango'] == 'En sede'])
+    cerca           = len(df[df['rango'] == 'Cerca'])
+    moderado        = len(df[df['rango'] == 'Moderado'])
+    lejos           = len(df[df['rango'] == 'Lejos'])
+    pct_en_sede     = round(en_sede / total * 100, 1)
+    promedio_dist   = round(df['distancia_metros'].mean(), 1)
+
+    # Distribucion por rango
+    distribucion = [
+        {'rango': 'En sede (≤50m)',    'cantidad': en_sede,   'color': '#1D9E75'},
+        {'rango': 'Cerca (50-200m)',   'cantidad': cerca,     'color': '#185FA5'},
+        {'rango': 'Moderado (200-500m)','cantidad': moderado, 'color': '#BA7517'},
+        {'rango': 'Lejos (>500m)',     'cantidad': lejos,     'color': '#E24B4A'},
+    ]
+
+    # Por empleado
+    por_empleado = df.groupby('empleado').agg(
+        total_registros=('distancia_metros', 'count'),
+        distancia_promedio=('distancia_metros', 'mean'),
+        distancia_maxima=('distancia_metros', 'max'),
+        en_sede=('rango', lambda x: (x == 'En sede').sum()),
+    ).reset_index()
+
+    por_empleado['pct_en_sede'] = por_empleado.apply(
+        lambda r: round(r['en_sede'] / r['total_registros'] * 100, 1), axis=1
+    )
+    por_empleado['distancia_promedio'] = por_empleado['distancia_promedio'].round(1)
+    por_empleado['distancia_maxima']   = por_empleado['distancia_maxima'].round(1)
+
+    empleados_ubicacion = por_empleado.to_dict('records')
+
+    # Por sede
+    por_sede = df.groupby('sede').agg(
+        total=('distancia_metros', 'count'),
+        dist_promedio=('distancia_metros', 'mean'),
+    ).reset_index()
+    por_sede['dist_promedio'] = por_sede['dist_promedio'].round(1)
+    sedes_ubicacion = por_sede.to_dict('records')
+
+    return {
+        'total':             total,
+        'en_sede':           en_sede,
+        'cerca':             cerca,
+        'moderado':          moderado,
+        'lejos':             lejos,
+        'pct_en_sede':       pct_en_sede,
+        'promedio_dist':     promedio_dist,
+        'distribucion':      distribucion,
+        'empleados_ubicacion': empleados_ubicacion,
+        'sedes_ubicacion':   sedes_ubicacion,
+    }
+    
