@@ -475,16 +475,16 @@ const reentrenar = async () => {
   modelos tienen rendimiento equivalente, la interpretabilidad es un criterio válido 
   y reconocido en la literatura de Machine Learning aplicado a entornos empresariales.
   <br /><br />
-  <strong>Sobre el accuracy del 100%:</strong> Los valores actuales reflejan un caso 
-  de sobreajuste (overfitting) causado por el tamaño reducido del dataset (
-  {datos.analisis?.total_turnos || 0} registros) y la homogeneidad de los patrones 
-  actuales — la mayoría corresponden a tardanzas frecuentes. Esto es esperado y 
-  documentado en la fase piloto inicial.
-  <br /><br />
-  <strong>Proyección agosto 2026:</strong> Con 200+ registros y mayor variedad de 
-  patrones de puntualidad, se espera que el accuracy se estabilice entre 70-85% y 
-  la diferencia entre modelos sea más evidente, validando la elección del Árbol de 
-  Decisión como modelo principal.
+  <strong>Sobre el accuracy del 100% del Árbol de Decisión:</strong> no se debe a
+  sobreajuste por tamaño de dataset. Una de las variables de entrada del modelo — la
+  diferencia en minutos respecto al horario esperado — es la misma variable con la que
+  se define la etiqueta, mediante umbrales fijos (≤10, 10-30, &gt;30 min). Un árbol de
+  decisión puede representar ese tipo de umbral de forma exacta, por lo que reproduce
+  la regla con precisión perfecta. La Regresión Logística, al modelar una frontera de
+  decisión lineal en vez de un escalón, no logra representarlo con la misma exactitud,
+  y por eso obtiene un accuracy menor ({datos.comparacion?.logistica?.accuracy ?? '—'}%).
+  Esa diferencia entre modelos es evidencia de que el 100% responde a la naturaleza de
+  la regla y no a que el árbol "aprendió mejor" el comportamiento real de los empleados.
   <br /><br />
   <strong>Features del modelo:</strong> diferencia en minutos respecto al horario 
   esperado por empleado/sede, día de la semana, sede codificada, empleado codificado 
