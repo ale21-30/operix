@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "704621587033",
+    "project_id": "operix-8a4ac",
+    "storage_bucket": "operix-8a4ac.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:704621587033:android:bb69e9aa0968a9902bdf48",
+        "android_client_info": {
+          "package_name": "com.operix.asistencia"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqlWGJTfHuWyfOZC3WaZxamfxXNAbhGAU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

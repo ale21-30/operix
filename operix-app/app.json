@@ -29,7 +29,8 @@
         "backgroundColor": "#04342C"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.operix.asistencia"
+      "package": "com.operix.asistencia",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/icono.png"
