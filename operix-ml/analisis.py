@@ -112,10 +112,14 @@ def predecir_puntualidad_empleados():
     if df.empty:
         return [], accuracy
 
-    df['minutos_entrada'] = df['hora_entrada'] * 60 + df['minuto_entrada']
+    df['minutos_entrada']    = df['hora_entrada'] * 60 + df['minuto_entrada']
+    df['minutos_esperado']   = df['minutos_horario_esperado'].fillna(480)
+    df['diferencia_minutos'] = df['minutos_entrada'] - df['minutos_esperado']
 
     stats = df.groupby(['usuario_id', 'empleado', 'sede']).agg(
         minutos_entrada=('minutos_entrada', 'mean'),
+        minutos_esperado=('minutos_esperado', 'mean'),
+        diferencia_minutos=('diferencia_minutos', 'mean'),
         dia_semana=('dia_semana', 'median'),
         duracion_minutos=('duracion_minutos', 'mean'),
         total_turnos=('id', 'count')
@@ -129,8 +133,10 @@ def predecir_puntualidad_empleados():
             emp_enc  = le_emp.transform([row['empleado']])[0] \
                 if row['empleado'] in le_emp.classes_ else 0
 
+            # Mismo feature usado en el entrenamiento: diferencia respecto al horario esperado,
+            # no la hora cruda de entrada (eso hacía que el modelo viera a todos como muy tarde)
             X_pred = [[
-                row['minutos_entrada'],
+                row['diferencia_minutos'],
                 row['dia_semana'],
                 sede_enc,
                 emp_enc,
@@ -144,12 +150,14 @@ def predecir_puntualidad_empleados():
             pred  = modelo.predict(X_pred)[0]
             proba = modelo.predict_proba(X_pred)[0]
             hora_prom = row['minutos_entrada']
+            hora_esp  = row['minutos_esperado']
 
             resultados.append({
                 'empleado':     row['empleado'],
                 'sede':         row['sede'],
                 'total_turnos': int(row['total_turnos']),
                 'hora_promedio':f"{int(hora_prom//60):02d}:{int(hora_prom%60):02d}",
+                'horario_esperado_fmt': f"{int(hora_esp//60):02d}:{int(hora_esp%60):02d}",
                 'categoria':    etiquetas[pred],
                 'confianza':    round(float(max(proba)) * 100, 1),
                 'categoria_id': int(pred)
