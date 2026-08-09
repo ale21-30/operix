@@ -9,6 +9,12 @@ export default function EmpleadosPage() {
   const [error,     setError]     = useState('');
   const [guardando, setGuardando] = useState(false);
 
+  const [modalEditar,  setModalEditar]  = useState(false);
+  const [empEditando,  setEmpEditando]  = useState(null);
+  const [formEditar,   setFormEditar]   = useState({ nombre:'', email:'', rol:'empleado' });
+  const [errorEditar,  setErrorEditar]  = useState('');
+  const [guardandoEditar, setGuardandoEditar] = useState(false);
+
   useEffect(() => { cargarEmpleados(); }, []);
 
   const cargarEmpleados = async () => {
@@ -53,6 +59,28 @@ export default function EmpleadosPage() {
       setError(err.response?.data?.error || 'Error al crear empleado');
     } finally {
       setGuardando(false);
+    }
+  };
+
+  const handleAbrirEditar = (emp) => {
+    setEmpEditando(emp);
+    setFormEditar({ nombre: emp.nombre, email: emp.email, rol: emp.rol });
+    setErrorEditar('');
+    setModalEditar(true);
+  };
+
+  const handleGuardarEdicion = async (e) => {
+    e.preventDefault();
+    setErrorEditar('');
+    setGuardandoEditar(true);
+    try {
+      await api.put(`/admin/empleados/${empEditando.id}`, formEditar);
+      setModalEditar(false);
+      cargarEmpleados();
+    } catch (err) {
+      setErrorEditar(err.response?.data?.error || 'Error al actualizar empleado');
+    } finally {
+      setGuardandoEditar(false);
     }
   };
 
@@ -136,6 +164,15 @@ export default function EmpleadosPage() {
               </div>
             </div>
 
+            {/* Botón editar */}
+            <button
+              onClick={() => handleAbrirEditar(emp)}
+              style={s.botonEditar}
+              title="Editar datos del empleado"
+            >
+              ✏️
+            </button>
+
             {/* Botón toggle estado */}
             <button
               onClick={() => handleToggleEstado(emp)}
@@ -205,6 +242,49 @@ export default function EmpleadosPage() {
           </div>
         </div>
       )}
+      {/* Modal editar empleado */}
+      {modalEditar && (
+        <div style={s.overlay} onClick={() => setModalEditar(false)}>
+          <div style={s.modal} onClick={e => e.stopPropagation()}>
+            <h2 style={s.modalTitulo}>Editar empleado</h2>
+            <form onSubmit={handleGuardarEdicion} style={s.form}>
+              {errorEditar && <div style={s.error}>{errorEditar}</div>}
+              <div style={s.campo}>
+                <label style={s.label}>Nombre completo</label>
+                <input
+                  required style={s.input} value={formEditar.nombre}
+                  onChange={e => setFormEditar({ ...formEditar, nombre: e.target.value })}
+                />
+              </div>
+              <div style={s.campo}>
+                <label style={s.label}>Correo electrónico</label>
+                <input
+                  required type="email" style={s.input} value={formEditar.email}
+                  onChange={e => setFormEditar({ ...formEditar, email: e.target.value })}
+                />
+              </div>
+              <div style={s.campo}>
+                <label style={s.label}>Rol</label>
+                <select
+                  style={s.input} value={formEditar.rol}
+                  onChange={e => setFormEditar({ ...formEditar, rol: e.target.value })}
+                >
+                  <option value="empleado">Empleado</option>
+                  <option value="admin">Administrador</option>
+                </select>
+              </div>
+              <div style={s.botonesModal}>
+                <button type="button" onClick={() => setModalEditar(false)} style={s.botonCancelar}>
+                  Cancelar
+                </button>
+                <button type="submit" style={s.botonGuardar} disabled={guardandoEditar}>
+                  {guardandoEditar ? 'Guardando...' : 'Guardar cambios'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -259,6 +339,14 @@ const s = {
   cardEmail:   { fontSize: 12, color: '#888', marginBottom: 8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   cardFooter:  { display: 'flex', gap: 6, flexWrap: 'wrap' },
   badge:       { padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: '600' },
+
+  // Botón editar
+  botonEditar: {
+    width: 34, height: 34, flexShrink: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    background: '#F5F5F5', border: '1px solid #E0E0E0', borderRadius: 8,
+    cursor: 'pointer', fontSize: 14, alignSelf: 'center',
+  },
 
   // Botón toggle
   botonToggle: {

@@ -3,7 +3,7 @@ const router     = express.Router();
 const { verificarToken } = require('../middlewares/auth');
 const {
   getResumen, getTurnos, getEmpleados,
-  crearEmpleado, getSedes, crearSede
+  crearEmpleado, editarEmpleado, getSedes, crearSede
 } = require('../controllers/adminController');
 
 // Middleware para verificar que sea admin
@@ -73,8 +73,9 @@ router.get('/turnos/activos', verificarToken, soloAdmin, async (req, res) => {
 
 router.get('/resumen',    verificarToken, soloAdmin, getResumen);
 router.get('/turnos',     verificarToken, soloAdmin, getTurnos);
-router.get('/empleados',  verificarToken, soloAdmin, getEmpleados);
-router.post('/empleados', verificarToken, soloAdmin, crearEmpleado);
+router.get('/empleados',      verificarToken, soloAdmin, getEmpleados);
+router.post('/empleados',     verificarToken, soloAdmin, crearEmpleado);
+router.put('/empleados/:id',  verificarToken, soloAdmin, editarEmpleado);
 router.get('/sedes',      verificarToken, soloAdmin, getSedes);
 router.post('/sedes',     verificarToken, soloAdmin, crearSede);
 

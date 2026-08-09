@@ -97,6 +97,30 @@ const crearEmpleado = async (req, res) => {
   }
 };
 
+const editarEmpleado = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre, email, rol } = req.body;
+
+    if (!nombre || !email || !rol) {
+      return res.status(400).json({ error: 'Nombre, email y rol son requeridos' });
+    }
+
+    await pool.query(
+      `UPDATE usuarios SET nombre = ?, email = ?, rol = ? WHERE id = ?`,
+      [nombre, email, rol, id]
+    );
+
+    res.json({ mensaje: 'Empleado actualizado correctamente' });
+  } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(400).json({ error: 'Ya existe un usuario con ese email' });
+    }
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+};
+
 const getSedes = async (req, res) => {
   try {
     const [sedes] = await pool.query(`SELECT * FROM sedes ORDER BY nombre`);
@@ -127,4 +151,4 @@ const crearSede = async (req, res) => {
   }
 };
 
-module.exports = { getResumen, getTurnos, getEmpleados, crearEmpleado, getSedes, crearSede };
+module.exports = { getResumen, getTurnos, getEmpleados, crearEmpleado, editarEmpleado, getSedes, crearSede };

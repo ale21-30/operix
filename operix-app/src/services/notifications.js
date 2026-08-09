@@ -1,4 +1,4 @@
-import { Platform, Alert } from 'react-native';
+import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import Constants from 'expo-constants';
@@ -18,7 +18,7 @@ Notifications.setNotificationHandler({
 export const registrarPushToken = async () => {
   try {
     if (!Device.isDevice) {
-      Alert.alert('Debug push', 'Device.isDevice es false (no se detecta como dispositivo físico)');
+      console.log('Las notificaciones push requieren un dispositivo físico');
       return null;
     }
 
@@ -40,22 +40,18 @@ export const registrarPushToken = async () => {
     }
 
     if (estadoFinal !== 'granted') {
-      Alert.alert('Debug push', `Permiso no concedido. Estado: ${estadoFinal}`);
+      console.log('Permiso de notificaciones no concedido');
       return null;
     }
 
     const projectId = Constants.expoConfig?.extra?.eas?.projectId;
-    Alert.alert('Debug push', `Permiso OK. projectId: ${projectId || 'INDEFINIDO'}. Pidiendo token...`);
-
     const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
-    Alert.alert('Debug push', `Token obtenido: ${token.slice(0, 30)}... Guardando en backend...`);
 
     await guardarPushToken(token);
-    Alert.alert('Debug push', 'Token guardado correctamente en el backend ✅');
 
     return token;
   } catch (err) {
-    Alert.alert('Debug push - ERROR', String(err?.message || err));
+    console.log('Error registrando push token:', err);
     return null;
   }
 };
