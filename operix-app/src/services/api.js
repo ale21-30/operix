@@ -131,3 +131,8 @@ export const obtenerTurnosActivos = async () => {
 export const obtenerTurnosRecientes = async () => {
   return await apiRequest('/admin/turnos?limite=15', 'GET');
 };
+
+// mes en formato 'YYYY-MM'
+export const obtenerNovedades = async (mes) => {
+  return await apiRequest(`/admin/novedades?mes=${mes}`, 'GET');
+};

@@ -1,7 +1,14 @@
-const { Expo } = require('expo-server-sdk');
 const pool = require('../config/db');
 
-const expo = new Expo();
+// expo-server-sdk es un paquete ESM-only — no se puede usar require() en un
+// proyecto CommonJS. Se carga con import() dinámico, solo cuando hace falta.
+let ExpoPromise = null;
+const cargarExpo = () => {
+  if (!ExpoPromise) {
+    ExpoPromise = import('expo-server-sdk').then(mod => mod.Expo);
+  }
+  return ExpoPromise;
+};
 
 // Envía una notificación push a todos los usuarios admin con push_token registrado
 const notificarAdmins = async (titulo, cuerpo) => {
@@ -10,6 +17,9 @@ const notificarAdmins = async (titulo, cuerpo) => {
       `SELECT id, push_token FROM usuarios WHERE rol = 'admin' AND push_token IS NOT NULL`
     );
     if (admins.length === 0) return;
+
+    const Expo = await cargarExpo();
+    const expo = new Expo();
 
     const mensajes = [];
     for (const admin of admins) {

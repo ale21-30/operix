@@ -7,6 +7,7 @@ import * as SecureStore from 'expo-secure-store';
 import LoginScreen     from '../screens/loginScreen';
 import HomeScreen      from '../screens/homeScreen';
 import AdminHomeScreen from '../screens/adminHomeScreen';
+import AdminNovedadesScreen from '../screens/adminNovedadesScreen';
 import EntradaScreen   from '../screens/entradaScreen';
 import SalidaScreen    from '../screens/salidaScreen';
 import BreakScreen     from '../screens/breakScreen';
@@ -135,6 +136,11 @@ export default function AppNavigator() {
             name="Historial"
             component={HistorialScreen}
             options={{ title: 'Mi Historial' }}
+          />
+          <Stack.Screen
+            name="AdminNovedades"
+            component={AdminNovedadesScreen}
+            options={{ title: 'Novedades' }}
           />
           <Stack.Screen
   name="CambiarPassword"

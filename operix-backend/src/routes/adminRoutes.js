@@ -239,6 +239,31 @@ router.get('/turnos/:id/detalle', verificarToken, soloAdmin, async (req, res) =>
   }
 });
 
+// Novedades de un mes específico (para el perfil admin de la app móvil)
+router.get('/novedades', verificarToken, soloAdmin, async (req, res) => {
+  try {
+    const pool = require('../config/db');
+    const mes = req.query.mes || new Date().toISOString().slice(0, 7); // YYYY-MM
+
+    const [novedades] = await pool.query(
+      `SELECT n.id, n.descripcion, n.foto, n.creado_en,
+              u.nombre AS empleado, s.nombre AS sede
+       FROM novedades n
+       JOIN turnos t   ON n.turno_id = t.id
+       JOIN usuarios u ON t.usuario_id = u.id
+       JOIN sedes s    ON t.sede_id = s.id
+       WHERE DATE_FORMAT(n.creado_en, '%Y-%m') = ?
+       ORDER BY n.creado_en DESC`,
+      [mes]
+    );
+
+    res.json({ mes, novedades });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+});
+
 const cloudinary = require('cloudinary').v2;
 
 cloudinary.config({

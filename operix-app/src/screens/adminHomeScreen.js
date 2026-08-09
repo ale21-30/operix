@@ -121,6 +121,16 @@ export default function AdminHomeScreen({ navigation }) {
         </View>
       </View>
 
+      {/* Accesos */}
+      <TouchableOpacity
+        style={styles.accesoNovedades}
+        onPress={() => navigation.navigate('AdminNovedades')}
+      >
+        <Text style={styles.accesoIcono}>📝</Text>
+        <Text style={styles.accesoTexto}>Ver novedades por mes</Text>
+        <Text style={styles.accesoFlecha}>›</Text>
+      </TouchableOpacity>
+
       {/* Turnos activos */}
       <Text style={styles.seccionTitulo}>🟢 Turnos activos ahora ({turnosActivos.length})</Text>
       {turnosActivos.length === 0 ? (
@@ -201,6 +211,16 @@ const styles = StyleSheet.create({
   headerTexto:       { flex: 1 },
   hola:              { fontSize: 20, fontWeight: 'bold', color: '#fff' },
   fecha:             { fontSize: 13, color: '#9FE1CB', marginTop: 4, textTransform: 'capitalize' },
+  accesoNovedades:   {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: '#fff', borderRadius: 12, padding: 16,
+    marginHorizontal: 16, marginTop: 16, elevation: 2,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1, shadowRadius: 3, gap: 12,
+  },
+  accesoIcono:       { fontSize: 22 },
+  accesoTexto:       { flex: 1, fontSize: 15, fontWeight: '600', color: '#222' },
+  accesoFlecha:      { fontSize: 22, color: '#999' },
   seccionTitulo:     { fontSize: 15, fontWeight: '600', color: '#04342C', margin: 16, marginBottom: 8 },
   vacio:             { alignItems: 'center', paddingVertical: 24, marginHorizontal: 16 },
   vacioTexto:        { fontSize: 14, color: '#888', textAlign: 'center' },
