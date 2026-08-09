@@ -78,4 +78,26 @@ const cambiarPassword = async (req, res) => {
   }
 };
 
-module.exports = { login, cambiarPassword };
+const guardarPushToken = async (req, res) => {
+  try {
+    const { push_token } = req.body;
+    const usuario_id = req.usuario.id;
+
+    if (!push_token) {
+      return res.status(400).json({ error: 'push_token es requerido' });
+    }
+
+    await pool.query(
+      'UPDATE usuarios SET push_token = ? WHERE id = ?',
+      [push_token, usuario_id]
+    );
+
+    res.json({ mensaje: 'Push token guardado correctamente' });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+};
+
+module.exports = { login, cambiarPassword, guardarPushToken };

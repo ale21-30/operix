@@ -2,9 +2,11 @@ import React, { useState, useEffect, createContext, useContext } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ActivityIndicator, View } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 
 import LoginScreen     from '../screens/loginScreen';
 import HomeScreen      from '../screens/homeScreen';
+import AdminHomeScreen from '../screens/adminHomeScreen';
 import EntradaScreen   from '../screens/entradaScreen';
 import SalidaScreen    from '../screens/salidaScreen';
 import BreakScreen     from '../screens/breakScreen';
@@ -13,6 +15,35 @@ import HistorialScreen from '../screens/historialScreen';
 import CambiarPasswordScreen from '../screens/cambiarPasswordScreen';
 
 import { obtenerToken, eliminarToken } from '../services/api';
+
+// Renderiza la pantalla de inicio según el rol del usuario logueado
+function HomeRouter(props) {
+  const [rol, setRol]         = useState(null);
+  const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await SecureStore.getItemAsync('operix_usuario');
+        setRol(data ? JSON.parse(data).rol : 'empleado');
+      } catch (err) {
+        setRol('empleado');
+      } finally {
+        setCargando(false);
+      }
+    })();
+  }, []);
+
+  if (cargando) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F5F5' }}>
+        <ActivityIndicator size="large" color="#04342C" />
+      </View>
+    );
+  }
+
+  return rol === 'admin' ? <AdminHomeScreen {...props} /> : <HomeScreen {...props} />;
+}
 
 const Stack = createNativeStackNavigator();
 
@@ -77,7 +108,7 @@ export default function AppNavigator() {
           />
           <Stack.Screen
             name="Home"
-            component={HomeScreen}
+            component={HomeRouter}
             options={{ title: 'Operix', headerBackVisible: false }}
           />
           <Stack.Screen

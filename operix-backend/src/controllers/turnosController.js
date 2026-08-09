@@ -1,5 +1,6 @@
 const pool       = require('../config/db');
 const cloudinary = require('../config/cloudinary');
+const { notificarAdmins } = require('../services/pushService');
 
 const subirFoto = async (file) => {
   if (!file) return null;
@@ -61,10 +62,17 @@ const registrarEntrada = async (req, res) => {
       [usuario_id, sede_id, latitud, longitud, foto]
     );
 
+    const hora = new Date().toLocaleTimeString('es-EC', { timeZone: 'America/Guayaquil' });
+
+    notificarAdmins(
+      '🟢 Entrada registrada',
+      `${req.usuario.nombre} registró entrada — ${sede[0].nombre} a las ${hora}`
+    );
+
     res.json({
       mensaje:   'Entrada registrada correctamente',
       turno_id:  resultado.insertId,
-      hora: new Date().toLocaleTimeString('es-EC', { timeZone: 'America/Guayaquil' }),
+      hora,
       sede:      sede[0].nombre,
       distancia: Math.round(distancia)
     });
@@ -195,6 +203,11 @@ const registrarNovedad = async (req, res) => {
     await pool.query(
       `INSERT INTO novedades (turno_id, descripcion, foto) VALUES (?, ?, ?)`,
       [turno[0].id, descripcion, foto]
+    );
+
+    notificarAdmins(
+      '📝 Nueva novedad',
+      `${req.usuario.nombre} registró una novedad`
     );
 
     res.json({ mensaje: 'Novedad registrada correctamente' });

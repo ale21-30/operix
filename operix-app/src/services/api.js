@@ -111,7 +111,23 @@ export const obtenerHistorial = async () => {
   return await apiRequest('/turnos/historial', 'GET');
 };
 export const cambiarPassword = async (passwordNueva) => {
-  return await apiRequest('/auth/cambiar-password', 'POST', { 
-    password_nueva: passwordNueva 
+  return await apiRequest('/auth/cambiar-password', 'POST', {
+    password_nueva: passwordNueva
   });
+};
+
+// ─────────────────────────────────────────
+// Funciones del perfil admin
+// ─────────────────────────────────────────
+
+export const guardarPushToken = async (pushToken) => {
+  return await apiRequest('/auth/push-token', 'POST', { push_token: pushToken });
+};
+
+export const obtenerTurnosActivos = async () => {
+  return await apiRequest('/admin/turnos/activos', 'GET');
+};
+
+export const obtenerTurnosRecientes = async () => {
+  return await apiRequest('/admin/turnos?limite=15', 'GET');
 };

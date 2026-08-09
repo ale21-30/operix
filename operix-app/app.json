@@ -2,7 +2,7 @@
   "expo": {
     "name": "Operix",
     "slug": "operix-app",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icono.png",
     "userInterfaceStyle": "light",
@@ -36,7 +36,14 @@
     },
     "plugins": [
       "expo-secure-store",
-      "expo-updates"
+      "expo-updates",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icono.png",
+          "color": "#04342C"
+        }
+      ]
     ],
     "extra": {
       "eas": {
