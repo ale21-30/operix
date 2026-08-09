@@ -49,10 +49,16 @@ export const apiRequest = async (endpoint, method = 'GET', body = null, isFormDa
     const response = await fetch(`${BASE_URL}${endpoint}`, config);
     const data = await response.json();
 
-    // Token expirado — elimina sesión automáticamente
+    // Token expirado — elimina sesión automáticamente.
+    // Solo aplica si ya había un token guardado (petición autenticada rechazada).
+    // Si no había token (ej. login con credenciales incorrectas), se muestra el
+    // mensaje real que manda el backend en vez de "sesión expirada".
     if (response.status === 401 || response.status === 403) {
-      await eliminarToken();
-      throw new Error('Sesión expirada. Por favor inicia sesión de nuevo.');
+      if (token) {
+        await eliminarToken();
+        throw new Error('Sesión expirada. Por favor inicia sesión de nuevo.');
+      }
+      throw new Error(data.error || 'Credenciales incorrectas');
     }
 
     if (!response.ok) {
