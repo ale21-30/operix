@@ -13,19 +13,24 @@ def conectar_bd():
 
 def obtener_datos_asistencia():
     conn = conectar_bd()
+    # NOW() en este servidor MySQL devuelve UTC (confirmado: hora_servidor = hora_utc).
+    # entrada_hora se guarda con NOW(), es decir en UTC, mientras que horarios.hora_entrada
+    # se carga manualmente en hora local de Ecuador (UTC-5). Sin convertir, cada comparación
+    # queda desfasada ~5 horas. Se usa un offset fijo (no CONVERT_TZ con nombre de zona) porque
+    # MySQL gestionado normalmente no tiene cargadas las tablas de zonas horarias con nombre.
     query = """
-        SELECT 
+        SELECT
             t.id,
             u.id AS usuario_id,
             u.nombre AS empleado,
             s.nombre AS sede,
-            t.entrada_hora,
-            t.salida_hora,
+            CONVERT_TZ(t.entrada_hora, '+00:00', '-05:00') AS entrada_hora,
+            CONVERT_TZ(t.salida_hora, '+00:00', '-05:00') AS salida_hora,
             t.estado,
-            HOUR(t.entrada_hora) AS hora_entrada,
-            MINUTE(t.entrada_hora) AS minuto_entrada,
-            DAYOFWEEK(t.entrada_hora) AS dia_semana,
-            TIMESTAMPDIFF(MINUTE, t.entrada_hora, 
+            HOUR(CONVERT_TZ(t.entrada_hora, '+00:00', '-05:00')) AS hora_entrada,
+            MINUTE(CONVERT_TZ(t.entrada_hora, '+00:00', '-05:00')) AS minuto_entrada,
+            DAYOFWEEK(CONVERT_TZ(t.entrada_hora, '+00:00', '-05:00')) AS dia_semana,
+            TIMESTAMPDIFF(MINUTE, t.entrada_hora,
                 COALESCE(t.salida_hora, NOW())) AS duracion_minutos,
             h.hora_entrada AS horario_entrada,
             HOUR(h.hora_entrada) * 60 + MINUTE(h.hora_entrada) AS minutos_horario_esperado
