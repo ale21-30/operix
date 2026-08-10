@@ -1,5 +1,13 @@
 const pool = require('../config/db');
 
+// Node 18 no expone la clase File de forma global (recién se agregó como
+// global en Node 20), pero expo-server-sdk la necesita internamente al usar
+// fetch/undici para llamar a la API de Expo. Sin este polyfill, el envío
+// falla en silencio con "ReferenceError: File is not defined".
+if (typeof globalThis.File === 'undefined') {
+  globalThis.File = require('node:buffer').File;
+}
+
 // expo-server-sdk es un paquete ESM-only — no se puede usar require() en un
 // proyecto CommonJS. Se carga con import() dinámico, solo cuando hace falta.
 let ExpoPromise = null;
