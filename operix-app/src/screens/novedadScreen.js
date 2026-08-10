@@ -114,6 +114,26 @@ const tomarFoto = async () => {
     <Text style={styles.botonFotoTexto}>Tomar foto de evidencia</Text>
   </TouchableOpacity>
 )}
+
+        <TouchableOpacity
+          style={[styles.boton, cargando && styles.botonDeshabilitado, { marginTop: 20 }]}
+          onPress={handleNovedad}
+          disabled={cargando}
+        >
+          {cargando ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.botonTexto}>Guardar novedad</Text>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.botonCancelar}
+          onPress={() => navigation.navigate('Home')}
+          disabled={cargando}
+        >
+          <Text style={styles.botonCancelarTexto}>Cancelar</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
