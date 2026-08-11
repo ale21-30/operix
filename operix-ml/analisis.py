@@ -77,6 +77,34 @@ def analisis_descriptivo(mes=None):
     por_sede.columns = ['sede', 'cantidad']
     turnos_por_sede = por_sede.to_dict('records')
 
+    # Desglose turno por turno — mismos umbrales que la etiqueta del modelo
+    # (Puntual <=10 min, Tardanza leve 10-30, Tardanza frecuente >30), pero aquí
+    # se aplica por turno individual, no por promedio del empleado. Sirve para que
+    # RRHH vea exactamente qué turno de qué fecha fue el que llegó tarde.
+    def categorizar_turno(diff):
+        if diff <= 10:
+            return 'Puntual'
+        elif diff <= 30:
+            return 'Tardanza leve'
+        else:
+            return 'Tardanza frecuente'
+
+    def fila_turno(r):
+        esperado = r['minutos_esperado']
+        return {
+            'empleado':            r['empleado'],
+            'sede':                r['sede'],
+            'fecha':               r['entrada_hora'].strftime('%Y-%m-%d') if not pd.isna(r['entrada_hora']) else None,
+            'hora_entrada':        r['entrada_hora'].strftime('%H:%M') if not pd.isna(r['entrada_hora']) else '--',
+            'hora_salida':         r['salida_hora'].strftime('%H:%M') if not pd.isna(r['salida_hora']) else '--',
+            'horario_esperado':    f"{int(esperado//60):02d}:{int(esperado%60):02d}" if not np.isnan(esperado) else '--',
+            'diferencia_minutos':  int(r['diferencia']) if not np.isnan(r['diferencia']) else None,
+            'categoria':           categorizar_turno(r['diferencia']),
+        }
+
+    detalle_turnos = [fila_turno(r) for _, r in df.iterrows()]
+    detalle_turnos.sort(key=lambda t: (t['empleado'], t['fecha'] or ''))
+
     return {
         'total_turnos':      total_turnos,
         'promedio_horas':    promedio_horas,
@@ -85,6 +113,7 @@ def analisis_descriptivo(mes=None):
         'distribucion_dia':  distribucion_dia,
         'empleados_stats':   empleados_stats,
         'turnos_por_sede':   turnos_por_sede,
+        'detalle_turnos':    detalle_turnos,
     }
 
 def predecir_puntualidad_empleados(mes=None):

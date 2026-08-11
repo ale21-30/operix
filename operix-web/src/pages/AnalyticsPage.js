@@ -59,9 +59,27 @@ const exportarExcel = () => {
     'Categoría ML':          p.categoria,
     'Confianza (%)':         p.confianza,
   }));
-  const ws = XLSX.utils.json_to_sheet(filas);
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Puntualidad');
+  const wsResumen = XLSX.utils.json_to_sheet(filas);
+  XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen por empleado');
+
+  // Hoja 2: desglose turno por turno, para ver exactamente qué día llegó tarde cada quien
+  const detalle = datos.analisis?.detalle_turnos || [];
+  if (detalle.length > 0) {
+    const filasDetalle = detalle.map(t => ({
+      'Empleado':           t.empleado,
+      'Sede':                t.sede,
+      'Fecha':               t.fecha || '--',
+      'Hora entrada':        t.hora_entrada,
+      'Hora salida':         t.hora_salida,
+      'Horario esperado':    t.horario_esperado,
+      'Diferencia (min)':    t.diferencia_minutos,
+      'Categoría':           t.categoria,
+    }));
+    const wsDetalle = XLSX.utils.json_to_sheet(filasDetalle);
+    XLSX.utils.book_append_sheet(wb, wsDetalle, 'Detalle de turnos');
+  }
+
   const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
   const sufijoMes = mes || 'historico';
   saveAs(
@@ -310,7 +328,7 @@ const reentrenar = async () => {
             onClick={exportarExcel}
             style={s.botonExportar}
             disabled={predicciones.length === 0}
-            title="Descargar como insumo para RRHH"
+            title="Descarga un Excel con dos hojas: resumen por empleado y el desglose de cada turno del mes"
           >
             📥 Descargar Excel
           </button>
