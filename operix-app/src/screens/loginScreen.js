@@ -15,13 +15,15 @@ export default function LoginScreen({ navigation }) {
   const [verPassword, setVerPassword] = useState(false);
 
 const handleLogin = async () => {
-  if (!email || !password) {
+  const emailLimpio = email.trim();
+  const passwordLimpio = password.trim();
+  if (!emailLimpio || !passwordLimpio) {
     Alert.alert('Error', 'Por favor completa todos los campos');
     return;
   }
   setCargando(true);
   try {
-    const respuesta = await login(email.trim().toLowerCase(), password);
+    const respuesta = await login(emailLimpio.toLowerCase(), passwordLimpio);
     await guardarToken(respuesta.token);
 
     // Guarda datos del usuario
@@ -66,6 +68,9 @@ const handleLogin = async () => {
           keyboardType="email-address"
           autoCapitalize="none"
           autoCorrect={false}
+          autoComplete="email"
+          textContentType="username"
+          importantForAutofill="yes"
         />
 
         <Text style={styles.label}>Contraseña</Text>
@@ -77,6 +82,9 @@ const handleLogin = async () => {
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!verPassword}
+            autoComplete="password"
+            textContentType="password"
+            importantForAutofill="yes"
           />
           <TouchableOpacity
             style={styles.ojito}
