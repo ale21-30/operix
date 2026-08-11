@@ -15,6 +15,10 @@ export default function EmpleadosPage() {
   const [errorEditar,  setErrorEditar]  = useState('');
   const [guardandoEditar, setGuardandoEditar] = useState(false);
 
+  const [modalDetalle, setModalDetalle] = useState(false);
+  const [detalle,      setDetalle]      = useState(null);
+  const [cargandoDetalle, setCargandoDetalle] = useState(false);
+
   useEffect(() => { cargarEmpleados(); }, []);
 
   const cargarEmpleados = async () => {
@@ -84,6 +88,34 @@ export default function EmpleadosPage() {
     }
   };
 
+  const handleAbrirDetalle = async (emp) => {
+    setModalDetalle(true);
+    setCargandoDetalle(true);
+    setDetalle(null);
+    try {
+      const res = await api.get(`/admin/empleados/${emp.id}`);
+      setDetalle(res.data);
+    } catch (err) {
+      console.error(err);
+      setDetalle({ error: true });
+    } finally {
+      setCargandoDetalle(false);
+    }
+  };
+
+  const diasLabel = (dias) => {
+    if (!dias) return '--';
+    try {
+      const arr = typeof dias === 'string' ? JSON.parse(dias) : dias;
+      if (Array.isArray(arr)) return arr.join(', ');
+    } catch {
+      // dias ya viene como texto plano (ej: "Lun-Vie")
+    }
+    return String(dias);
+  };
+
+  const horaLabel = (h) => (h ? String(h).slice(0, 5) : '--');
+
   const handleToggleEstado = async (emp) => {
     if (!window.confirm(
       `¿${emp.activo ? 'Desactivar' : 'Activar'} a ${emp.nombre}?`
@@ -144,7 +176,13 @@ export default function EmpleadosPage() {
 
             {/* Info del empleado */}
             <div style={s.cardInfo}>
-              <div style={s.cardNombre}>{emp.nombre}</div>
+              <div
+                style={s.cardNombreClick}
+                onClick={() => handleAbrirDetalle(emp)}
+                title="Ver detalle del empleado"
+              >
+                {emp.nombre}
+              </div>
               <div style={s.cardEmail}>{emp.email}</div>
               <div style={s.cardFooter}>
                 <span style={{
@@ -285,6 +323,82 @@ export default function EmpleadosPage() {
           </div>
         </div>
       )}
+      {/* Modal detalle empleado */}
+      {modalDetalle && (
+        <div style={s.overlay} onClick={() => setModalDetalle(false)}>
+          <div style={s.modalDetalle} onClick={e => e.stopPropagation()}>
+            {cargandoDetalle ? (
+              <div style={s.cargando}>Cargando información...</div>
+            ) : !detalle || detalle.error ? (
+              <div style={s.cargando}>No se pudo cargar la información del empleado</div>
+            ) : (
+              <>
+                <div style={s.detalleHeader}>
+                  {detalle.empleado.foto_perfil ? (
+                    <img src={detalle.empleado.foto_perfil} alt={detalle.empleado.nombre} style={s.detalleAvatarImg} />
+                  ) : (
+                    <div style={s.detalleAvatarLetra}>
+                      {detalle.empleado.nombre?.charAt(0)?.toUpperCase() || '?'}
+                    </div>
+                  )}
+                  <div>
+                    <h2 style={s.modalTitulo}>{detalle.empleado.nombre}</h2>
+                    <div style={s.cardEmail}>{detalle.empleado.email}</div>
+                    <div style={s.cardFooter}>
+                      <span style={{
+                        ...s.badge,
+                        background: detalle.empleado.rol === 'admin' ? '#E6F1FB' : '#E1F5EE',
+                        color:      detalle.empleado.rol === 'admin' ? '#0C447C' : '#085041',
+                      }}>
+                        {detalle.empleado.rol}
+                      </span>
+                      <span style={{
+                        ...s.badge,
+                        background: detalle.empleado.activo ? '#E1F5EE' : '#FCEBEB',
+                        color:      detalle.empleado.activo ? '#085041' : '#A32D2D',
+                      }}>
+                        {detalle.empleado.activo ? '● Activo' : '○ Inactivo'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={s.detalleSeccion}>
+                  <h3 style={s.detalleSubtitulo}>Sedes y horarios asignados</h3>
+                  {detalle.horarios.length === 0 ? (
+                    <div style={s.detalleVacio}>Este empleado no tiene horarios asignados todavía</div>
+                  ) : (
+                    <div style={s.tablaHorarios}>
+                      <div style={s.filaHorarioHead}>
+                        <span>Sede</span>
+                        <span>Días</span>
+                        <span>Entrada</span>
+                        <span>Salida</span>
+                        <span>Estado</span>
+                      </div>
+                      {detalle.horarios.map((h) => (
+                        <div key={h.id} style={s.filaHorario}>
+                          <span>{h.sede}</span>
+                          <span>{diasLabel(h.dias)}</span>
+                          <span>{horaLabel(h.hora_entrada)}</span>
+                          <span>{horaLabel(h.hora_salida)}</span>
+                          <span>{h.activo ? 'Activo' : 'Inactivo'}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div style={s.botonesModal}>
+                  <button type="button" onClick={() => setModalDetalle(false)} style={s.botonCancelar}>
+                    Cerrar
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -336,6 +450,7 @@ const s = {
   // Info
   cardInfo:    { flex: 1, minWidth: 0 },
   cardNombre:  { fontSize: 14, fontWeight: '700', color: '#222', marginBottom: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  cardNombreClick: { fontSize: 14, fontWeight: '700', color: '#04342C', marginBottom: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'transparent' },
   cardEmail:   { fontSize: 12, color: '#888', marginBottom: 8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   cardFooter:  { display: 'flex', gap: 6, flexWrap: 'wrap' },
   badge:       { padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: '600' },
@@ -359,7 +474,19 @@ const s = {
   // Modal
   overlay:      { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
   modal:        { background: '#fff', borderRadius: 16, padding: 32, width: '100%', maxWidth: 440, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' },
-  modalTitulo:  { fontSize: 22, fontWeight: 'bold', color: '#04342C', marginBottom: 24 },
+  modalDetalle: { background: '#fff', borderRadius: 16, padding: 32, width: '100%', maxWidth: 560, maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' },
+  modalTitulo:  { fontSize: 22, fontWeight: 'bold', color: '#04342C', marginBottom: 4 },
+
+  detalleHeader:     { display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 },
+  detalleAvatarImg:  { width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', border: '3px solid #04342C', flexShrink: 0 },
+  detalleAvatarLetra:{ width: 72, height: 72, borderRadius: '50%', background: '#04342C', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28, fontWeight: 'bold', flexShrink: 0 },
+  detalleSeccion:    { marginBottom: 8 },
+  detalleSubtitulo:  { fontSize: 15, fontWeight: '700', color: '#04342C', marginBottom: 10 },
+  detalleVacio:      { fontSize: 13, color: '#888', padding: '12px 0' },
+
+  tablaHorarios:     { border: '1px solid #E0E0E0', borderRadius: 10, overflow: 'hidden' },
+  filaHorarioHead:   { display: 'grid', gridTemplateColumns: '1.4fr 1.4fr 0.8fr 0.8fr 0.8fr', gap: 8, padding: '8px 12px', background: '#F5F5F5', fontSize: 11, fontWeight: '700', color: '#666', textTransform: 'uppercase' },
+  filaHorario:       { display: 'grid', gridTemplateColumns: '1.4fr 1.4fr 0.8fr 0.8fr 0.8fr', gap: 8, padding: '10px 12px', fontSize: 13, color: '#333', borderTop: '1px solid #EEE' },
   form:         { display: 'flex', flexDirection: 'column', gap: 16 },
   error:        { background: '#FCEBEB', color: '#A32D2D', padding: '10px 14px', borderRadius: 8, fontSize: 13 },
   campo:        { display: 'flex', flexDirection: 'column', gap: 6 },

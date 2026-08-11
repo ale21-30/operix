@@ -142,3 +142,8 @@ export const obtenerTurnosRecientes = async () => {
 export const obtenerNovedades = async (mes) => {
   return await apiRequest(`/admin/novedades?mes=${mes}`, 'GET');
 };
+
+// Historial unificado de entradas + novedades (para la campanita de notificaciones)
+export const obtenerActividad = async (limite = 100) => {
+  return await apiRequest(`/admin/actividad?limite=${limite}`, 'GET');
+};

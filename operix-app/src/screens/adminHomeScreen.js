@@ -118,6 +118,12 @@ export default function AdminHomeScreen({ navigation }) {
               })}
             </Text>
           </View>
+          <TouchableOpacity
+            style={styles.campanita}
+            onPress={() => navigation.navigate('AdminNotificaciones')}
+          >
+            <Text style={styles.campanitaIcono}>🔔</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -211,6 +217,13 @@ const styles = StyleSheet.create({
   headerTexto:       { flex: 1 },
   hola:              { fontSize: 20, fontWeight: 'bold', color: '#fff' },
   fecha:             { fontSize: 13, color: '#9FE1CB', marginTop: 4, textTransform: 'capitalize' },
+  campanita:         {
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center', justifyContent: 'center',
+    flexShrink: 0,
+  },
+  campanitaIcono:    { fontSize: 20 },
   accesoNovedades:   {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: '#fff', borderRadius: 12, padding: 16,

@@ -121,6 +121,74 @@ const editarEmpleado = async (req, res) => {
   }
 };
 
+const getEmpleadoDetalle = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [usuarios] = await pool.query(
+      `SELECT id, nombre, email, rol, activo, foto_perfil, creado_en
+       FROM usuarios WHERE id = ?`,
+      [id]
+    );
+    if (usuarios.length === 0) {
+      return res.status(404).json({ error: 'Empleado no encontrado' });
+    }
+
+    const [horarios] = await pool.query(
+      `SELECT h.id, s.id AS sede_id, s.nombre AS sede,
+              h.hora_entrada, h.hora_salida, h.dias, h.activo
+       FROM horarios h
+       JOIN sedes s ON h.sede_id = s.id
+       WHERE h.usuario_id = ?
+       ORDER BY s.nombre`,
+      [id]
+    );
+
+    res.json({ empleado: usuarios[0], horarios });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+};
+
+const getActividad = async (req, res) => {
+  try {
+    const limite = parseInt(req.query.limite) || 50;
+
+    const [actividad] = await pool.query(
+      `(
+        SELECT 'entrada' AS tipo, u.nombre AS empleado, s.nombre AS sede,
+               t.entrada_hora AS fecha, NULL AS descripcion
+        FROM turnos t
+        JOIN usuarios u ON t.usuario_id = u.id
+        JOIN sedes s ON t.sede_id = s.id
+        WHERE t.entrada_hora IS NOT NULL
+        ORDER BY t.entrada_hora DESC
+        LIMIT 50
+      )
+      UNION ALL
+      (
+        SELECT 'novedad' AS tipo, u.nombre AS empleado, s.nombre AS sede,
+               n.creado_en AS fecha, n.descripcion
+        FROM novedades n
+        JOIN turnos t ON n.turno_id = t.id
+        JOIN usuarios u ON t.usuario_id = u.id
+        JOIN sedes s ON t.sede_id = s.id
+        ORDER BY n.creado_en DESC
+        LIMIT 50
+      )
+      ORDER BY fecha DESC
+      LIMIT ?`,
+      [limite]
+    );
+
+    res.json({ actividad });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error del servidor' });
+  }
+};
+
 const getSedes = async (req, res) => {
   try {
     const [sedes] = await pool.query(`SELECT * FROM sedes ORDER BY nombre`);
@@ -151,4 +219,7 @@ const crearSede = async (req, res) => {
   }
 };
 
-module.exports = { getResumen, getTurnos, getEmpleados, crearEmpleado, editarEmpleado, getSedes, crearSede };
+module.exports = {
+  getResumen, getTurnos, getEmpleados, crearEmpleado, editarEmpleado,
+  getEmpleadoDetalle, getActividad, getSedes, crearSede
+};

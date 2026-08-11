@@ -14,8 +14,8 @@ def limpiar_nan(obj):
         return None
     return obj
 
-def analisis_descriptivo():
-    df = obtener_datos_asistencia()
+def analisis_descriptivo(mes=None):
+    df = obtener_datos_asistencia(mes)
 
     if df.empty:
         return { 'total_turnos': 0, 'mensaje': 'No hay datos suficientes aún' }
@@ -87,7 +87,7 @@ def analisis_descriptivo():
         'turnos_por_sede':   turnos_por_sede,
     }
 
-def predecir_puntualidad_empleados():
+def predecir_puntualidad_empleados(mes=None):
     import pickle
     import os
 
@@ -108,7 +108,7 @@ def predecir_puntualidad_empleados():
     metricas  = datos_modelo.get('metricas', {})
     accuracy  = metricas.get('accuracy', 0) / 100 if metricas else 0
 
-    df = obtener_datos_asistencia()
+    df = obtener_datos_asistencia(mes)
     if df.empty:
         return [], accuracy
 

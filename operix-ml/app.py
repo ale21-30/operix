@@ -3,7 +3,7 @@ import math
 import os
 import pickle
 
-from flask import Flask, Response
+from flask import Flask, Response, request
 from flask_cors import CORS
 from analisis import analisis_descriptivo, predecir_puntualidad_empleados
 from modelo import entrenar_modelos
@@ -97,14 +97,16 @@ def get_ubicacion():
 @app.route('/resumen-ml')
 def get_resumen_ml():
     try:
-        stats = analisis_descriptivo()
-        ubicacion   = analisis_ubicacion() 
+        mes = request.args.get('mes')  # opcional, formato YYYY-MM
+        stats = analisis_descriptivo(mes)
+        ubicacion   = analisis_ubicacion()
         entrenar_modelos()
-        predicciones, accuracy = predecir_puntualidad_empleados()
+        predicciones, accuracy = predecir_puntualidad_empleados(mes)
         with open('models/modelo_puntualidad.pkl', 'rb') as f:
             datos = pickle.load(f)
         return json_response({
             'ok': True,
+            'mes': mes,
             'analisis': stats,
             'ubicacion':   ubicacion,
             'predicciones': predicciones,

@@ -3,7 +3,8 @@ const router     = express.Router();
 const { verificarToken } = require('../middlewares/auth');
 const {
   getResumen, getTurnos, getEmpleados,
-  crearEmpleado, editarEmpleado, getSedes, crearSede
+  crearEmpleado, editarEmpleado, getEmpleadoDetalle, getActividad,
+  getSedes, crearSede
 } = require('../controllers/adminController');
 
 // Middleware para verificar que sea admin
@@ -73,9 +74,11 @@ router.get('/turnos/activos', verificarToken, soloAdmin, async (req, res) => {
 
 router.get('/resumen',    verificarToken, soloAdmin, getResumen);
 router.get('/turnos',     verificarToken, soloAdmin, getTurnos);
-router.get('/empleados',      verificarToken, soloAdmin, getEmpleados);
-router.post('/empleados',     verificarToken, soloAdmin, crearEmpleado);
-router.put('/empleados/:id',  verificarToken, soloAdmin, editarEmpleado);
+router.get('/empleados',       verificarToken, soloAdmin, getEmpleados);
+router.post('/empleados',      verificarToken, soloAdmin, crearEmpleado);
+router.put('/empleados/:id',   verificarToken, soloAdmin, editarEmpleado);
+router.get('/empleados/:id',   verificarToken, soloAdmin, getEmpleadoDetalle);
+router.get('/actividad',       verificarToken, soloAdmin, getActividad);
 router.get('/sedes',      verificarToken, soloAdmin, getSedes);
 router.post('/sedes',     verificarToken, soloAdmin, crearSede);
 
@@ -97,7 +100,10 @@ const https = require('https');
 
 router.get('/ml/resumen', verificarToken, soloAdmin, async (req, res) => {
   try {
-    const url = 'https://modelo-python-production.up.railway.app/resumen-ml';
+    let url = 'https://modelo-python-production.up.railway.app/resumen-ml';
+    if (req.query.mes) {
+      url += `?mes=${encodeURIComponent(req.query.mes)}`;
+    }
     https.get(url, (response) => {
       let data = '';
       response.on('data', chunk => data += chunk);

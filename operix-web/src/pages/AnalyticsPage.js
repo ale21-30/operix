@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Cell } from 'recharts';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 
 const COLORES_CATEGORIA = {
@@ -14,22 +16,23 @@ export default function AnalyticsPage() {
   const [cargando,  setCargando]  = useState(true);
   const [error,     setError]     = useState(null);
   const [entrenando,setEntrenando]= useState(false);
+  const [mes,       setMes]       = useState(''); // '' = histórico completo, o 'YYYY-MM'
 
   useEffect(() => {
-    cargarDatos();
-  }, []);
+    cargarDatos(mes);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mes]);
 
-const cargarDatos = async () => {
+const cargarDatos = async (mesFiltro) => {
   setCargando(true);
   setError(null);
   try {
     const token = localStorage.getItem('operix_token');
-    const res = await fetch(
-      'https://operix-production-052c.up.railway.app/api/admin/ml/resumen',
-      {
-        headers: { 'Authorization': `Bearer ${token}` }
-      }
-    );
+    let url = 'https://operix-production-052c.up.railway.app/api/admin/ml/resumen';
+    if (mesFiltro) url += `?mes=${encodeURIComponent(mesFiltro)}`;
+    const res = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
     const data = await res.json();
     if (data.ok) {
       setDatos(data);
@@ -41,6 +44,30 @@ const cargarDatos = async () => {
   } finally {
     setCargando(false);
   }
+};
+
+const exportarExcel = () => {
+  if (!datos || !datos.predicciones || datos.predicciones.length === 0) return;
+  const filaMes = mes || 'Histórico completo';
+  const filas = datos.predicciones.map(p => ({
+    'Empleado':              p.empleado,
+    'Sede':                  p.sede,
+    'Mes analizado':         filaMes,
+    'Turnos analizados':     p.total_turnos,
+    'Hora promedio entrada': p.hora_promedio || '--',
+    'Horario esperado':      p.horario_esperado_fmt || '--',
+    'Categoría ML':          p.categoria,
+    'Confianza (%)':         p.confianza,
+  }));
+  const ws = XLSX.utils.json_to_sheet(filas);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Puntualidad');
+  const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const sufijoMes = mes || 'historico';
+  saveAs(
+    new Blob([buffer]),
+    `Puntualidad_Operix_${sufijoMes}.xlsx`
+  );
 };
 
 const reentrenar = async () => {
@@ -56,7 +83,7 @@ const reentrenar = async () => {
     const data = await res.json();
     if (data.ok) {
       alert(`✅ Modelo reentrenado correctamente`);
-      cargarDatos();
+      cargarDatos(mes);
     }
   } catch (err) {
     alert('Error al entrenar el modelo');
@@ -94,11 +121,23 @@ const reentrenar = async () => {
           <h1 style={s.titulo}>Analítica ML</h1>
           <p style={s.sub}>Análisis descriptivo y predicción de puntualidad</p>
         </div>
-        <div style={{ display:'flex', gap:10 }}>
+        <div style={{ display:'flex', gap:10, alignItems:'center' }}>
+          <input
+            type="month"
+            value={mes}
+            onChange={e => setMes(e.target.value)}
+            style={s.selectorMes}
+            title="Filtrar por mes"
+          />
+          {mes && (
+            <button onClick={() => setMes('')} style={s.botonRefresh} title="Quitar filtro de mes">
+              ✕ Ver histórico
+            </button>
+          )}
           <button onClick={reentrenar} style={s.botonEntrenar} disabled={entrenando}>
             {entrenando ? '⏳ Entrenando...' : '🔄 Re-entrenar modelo'}
           </button>
-          <button onClick={cargarDatos} style={s.botonRefresh}>
+          <button onClick={() => cargarDatos(mes)} style={s.botonRefresh}>
             🔃 Actualizar
           </button>
         </div>
@@ -262,13 +301,23 @@ const reentrenar = async () => {
 
       {/* Predicciones ML */}
       <div style={s.card}>
-        <h3 style={s.cardTitulo}>
-          🤖 Clasificación ML de puntualidad por empleado
-          <span style={s.accuracyBadge}>Accuracy: {accuracy}%</span>
-        </h3>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12 }}>
+          <h3 style={s.cardTitulo}>
+            🤖 Clasificación ML de puntualidad por empleado
+            <span style={s.accuracyBadge}>Accuracy: {accuracy}%</span>
+          </h3>
+          <button
+            onClick={exportarExcel}
+            style={s.botonExportar}
+            disabled={predicciones.length === 0}
+            title="Descargar como insumo para RRHH"
+          >
+            📥 Descargar Excel
+          </button>
+        </div>
         <p style={s.cardDesc}>
           El modelo de árbol de decisión clasifica a cada empleado según sus patrones
-          históricos de entrada. Entrenado con datos reales de la empresa.
+          históricos de entrada. {mes ? `Datos del mes ${mes}.` : 'Entrenado con datos reales de la empresa (histórico completo).'}
         </p>
 
         {predicciones.length === 0 ? (
@@ -504,6 +553,8 @@ const s = {
   sub:         { fontSize:14, color:'#888', marginTop:4 },
   botonEntrenar:{ padding:'10px 18px', background:'#533AB7', color:'#fff', border:'none', borderRadius:8, fontSize:14, fontWeight:'600', cursor:'pointer' },
   botonRefresh: { padding:'10px 18px', background:'#F5F5F5', color:'#444', border:'1px solid #E0E0E0', borderRadius:8, fontSize:14, cursor:'pointer' },
+  botonExportar:{ padding:'8px 16px', background:'#04342C', color:'#fff', border:'none', borderRadius:8, fontSize:13, fontWeight:'600', cursor:'pointer', whiteSpace:'nowrap', flexShrink:0 },
+  selectorMes:  { padding:'9px 14px', background:'#F5F5F5', color:'#444', border:'1px solid #E0E0E0', borderRadius:8, fontSize:14, cursor:'pointer' },
   botonReintentar:{ marginTop:16, padding:'10px 20px', background:'#04342C', color:'#fff', border:'none', borderRadius:8, cursor:'pointer' },
   errorBox:    { background:'#FCEBEB', borderRadius:12, padding:32, maxWidth:500 },
   code:        { background:'#F5F5F5', padding:'4px 8px', borderRadius:4, fontSize:12, fontFamily:'monospace' },

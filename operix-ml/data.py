@@ -11,7 +11,9 @@ def conectar_bd():
         port=int(os.environ.get('DB_PORT', 3306))
     )
 
-def obtener_datos_asistencia():
+def obtener_datos_asistencia(mes=None):
+    """mes: cadena opcional 'YYYY-MM'. Si se pasa, filtra los turnos cuyo
+    entrada_hora (ya convertido a hora de Ecuador) caiga dentro de ese mes."""
     conn = conectar_bd()
     # NOW() en este servidor MySQL devuelve UTC (confirmado: hora_servidor = hora_utc).
     # entrada_hora se guarda con NOW(), es decir en UTC, mientras que horarios.hora_entrada
@@ -37,14 +39,19 @@ def obtener_datos_asistencia():
         FROM turnos t
         JOIN usuarios u ON t.usuario_id = u.id
         JOIN sedes s ON t.sede_id = s.id
-        LEFT JOIN horarios h ON h.usuario_id = t.usuario_id 
+        LEFT JOIN horarios h ON h.usuario_id = t.usuario_id
             AND h.sede_id = t.sede_id
             AND h.activo = 1
         WHERE t.estado = 'completado'
         AND t.entrada_hora IS NOT NULL
-        ORDER BY t.entrada_hora DESC
     """
-    df = pd.read_sql(query, conn)
+    params = []
+    if mes:
+        query += " AND DATE_FORMAT(CONVERT_TZ(t.entrada_hora, '+00:00', '-05:00'), '%%Y-%%m') = %s"
+        params.append(mes)
+    query += " ORDER BY t.entrada_hora DESC"
+
+    df = pd.read_sql(query, conn, params=params if params else None)
     conn.close()
     return df
 
