@@ -47,7 +47,12 @@ def obtener_datos_asistencia(mes=None):
     """
     params = []
     if mes:
-        query += " AND DATE_FORMAT(CONVERT_TZ(t.entrada_hora, '+00:00', '-05:00'), '%%Y-%%m') = %s"
+        # mysql-connector-python solo sustituye tokens "%s" literales (via regex), no hace
+        # % -formatting de todo el string como psycopg2/PyMySQL. Si aquí se escapa como '%%Y-%%m'
+        # (pensando que hacía falta escapar el % de DATE_FORMAT), MySQL interpreta '%%' como un
+        # '%' literal y el resultado de DATE_FORMAT termina siendo el texto literal "%Y-%m" en vez
+        # de la fecha real, así que nunca calza contra el mes recibido y el filtro devuelve 0 filas.
+        query += " AND DATE_FORMAT(CONVERT_TZ(t.entrada_hora, '+00:00', '-05:00'), '%Y-%m') = %s"
         params.append(mes)
     query += " ORDER BY t.entrada_hora DESC"
 
