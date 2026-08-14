@@ -3,6 +3,12 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Cell } from 'recharts';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import {
+  LuBrainCircuit, LuTriangleAlert, LuX, LuRefreshCw, LuRotateCw,
+  LuClipboardList, LuTimer, LuCircleCheck, LuChartBar, LuCalendarDays,
+  LuMapPin, LuDownload, LuCheck, LuOctagonAlert, LuUsers, LuTrophy,
+  LuGitBranch, LuTrendingUp, LuBookOpen,
+} from 'react-icons/lu';
 
 
 const COLORES_CATEGORIA = {
@@ -100,7 +106,7 @@ const reentrenar = async () => {
     );
     const data = await res.json();
     if (data.ok) {
-      alert(`✅ Modelo reentrenado correctamente`);
+      alert('Modelo reentrenado correctamente');
       cargarDatos(mes);
     }
   } catch (err) {
@@ -110,12 +116,18 @@ const reentrenar = async () => {
   }
 };
 
-  if (cargando) return <div style={s.cargando}>🤖 Cargando análisis ML...</div>;
+  if (cargando) return (
+    <div style={{ ...s.cargando, display:'flex', alignItems:'center', justifyContent:'center', gap:10 }}>
+      <LuBrainCircuit size={22} /> Cargando análisis ML...
+    </div>
+  );
 
   if (error) return (
     <div style={s.container}>
       <div style={s.errorBox}>
-        <h2 style={{ color:'#A32D2D', marginBottom:12 }}>⚠️ Error de conexión ML</h2>
+        <h2 style={{ color:'#A32D2D', marginBottom:12, display:'flex', alignItems:'center', gap:8 }}>
+          <LuTriangleAlert size={20} /> Error de conexión ML
+        </h2>
         <p style={{ color:'#666', marginBottom:16 }}>{error}</p>
         <p style={{ color:'#888', fontSize:13 }}>
           Asegúrate de que el servidor Python está corriendo:<br/>
@@ -148,15 +160,16 @@ const reentrenar = async () => {
             title="Filtrar por mes"
           />
           {mes && (
-            <button onClick={() => setMes('')} style={s.botonRefresh} title="Quitar filtro de mes">
-              ✕ Ver histórico
+            <button onClick={() => setMes('')} style={s.botonConIcono} title="Quitar filtro de mes">
+              <LuX size={15} /> Ver histórico
             </button>
           )}
-          <button onClick={reentrenar} style={s.botonEntrenar} disabled={entrenando}>
-            {entrenando ? '⏳ Entrenando...' : '🔄 Re-entrenar modelo'}
+          <button onClick={reentrenar} style={{ ...s.botonEntrenar, ...s.botonConIcono }} disabled={entrenando}>
+            <LuRefreshCw size={15} className={entrenando ? 'girando' : ''} />
+            {entrenando ? 'Entrenando...' : 'Re-entrenar modelo'}
           </button>
-          <button onClick={() => cargarDatos(mes)} style={s.botonRefresh}>
-            🔃 Actualizar
+          <button onClick={() => cargarDatos(mes)} style={{ ...s.botonRefresh, ...s.botonConIcono }}>
+            <LuRotateCw size={15} /> Actualizar
           </button>
         </div>
       </div>
@@ -164,22 +177,22 @@ const reentrenar = async () => {
       {/* KPIs */}
       <div style={s.grid4}>
         <div style={{ ...s.kpi, borderTopColor:'#1D9E75' }}>
-          <div style={s.kpiIcono}>📋</div>
+          <div style={{ ...s.kpiIcono, background:'#1D9E751A', color:'#1D9E75' }}><LuClipboardList size={20} /></div>
           <div style={{ ...s.kpiValor, color:'#1D9E75' }}>{analisis.total_turnos}</div>
           <div style={s.kpiLabel}>Total turnos</div>
         </div>
         <div style={{ ...s.kpi, borderTopColor:'#185FA5' }}>
-          <div style={s.kpiIcono}>⏱️</div>
+          <div style={{ ...s.kpiIcono, background:'#185FA51A', color:'#185FA5' }}><LuTimer size={20} /></div>
           <div style={{ ...s.kpiValor, color:'#185FA5' }}>{analisis.promedio_horas}h</div>
           <div style={s.kpiLabel}>Promedio por turno</div>
         </div>
         <div style={{ ...s.kpi, borderTopColor:'#1D9E75' }}>
-          <div style={s.kpiIcono}>✅</div>
+          <div style={{ ...s.kpiIcono, background:'#1D9E751A', color:'#1D9E75' }}><LuCircleCheck size={20} /></div>
           <div style={{ ...s.kpiValor, color:'#1D9E75' }}>{analisis.pct_puntualidad}%</div>
           <div style={s.kpiLabel}>Puntualidad global</div>
         </div>
         <div style={{ ...s.kpi, borderTopColor:'#533AB7' }}>
-          <div style={s.kpiIcono}>🤖</div>
+          <div style={{ ...s.kpiIcono, background:'#533AB71A', color:'#533AB7' }}><LuBrainCircuit size={20} /></div>
           <div style={{ ...s.kpiValor, color:'#533AB7' }}>{accuracy}%</div>
           <div style={s.kpiLabel}>Accuracy del modelo</div>
         </div>
@@ -190,7 +203,7 @@ const reentrenar = async () => {
 
         {/* Distribución por hora */}
         <div style={s.card}>
-          <h3 style={s.cardTitulo}>📊 Entradas por hora del día</h3>
+          <h3 style={s.cardTitulo}><LuChartBar size={18} /> Entradas por hora del día</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={analisis.distribucion_hora}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" />
@@ -204,7 +217,7 @@ const reentrenar = async () => {
 
         {/* Distribución por día */}
         <div style={s.card}>
-          <h3 style={s.cardTitulo}>📅 Turnos por día de la semana</h3>
+          <h3 style={s.cardTitulo}><LuCalendarDays size={18} /> Turnos por día de la semana</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={analisis.distribucion_dia}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" />
@@ -221,7 +234,7 @@ const reentrenar = async () => {
 {datos.ubicacion && datos.ubicacion.total > 0 && (
   <div style={s.card}>
     <h3 style={s.cardTitulo}>
-      📍 Análisis de Ubicación GPS
+      <LuMapPin size={18} /> Análisis de Ubicación GPS
       <span style={{ ...s.accuracyBadge, marginLeft: 12 }}>
         {datos.ubicacion.pct_en_sede}% en sede
       </span>
@@ -321,16 +334,16 @@ const reentrenar = async () => {
       <div style={s.card}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12 }}>
           <h3 style={s.cardTitulo}>
-            🤖 Clasificación ML de puntualidad por empleado
+            <LuBrainCircuit size={18} /> Clasificación ML de puntualidad por empleado
             <span style={s.accuracyBadge}>Accuracy: {accuracy}%</span>
           </h3>
           <button
             onClick={exportarExcel}
-            style={s.botonExportar}
+            style={{ ...s.botonExportar, ...s.botonConIcono }}
             disabled={predicciones.length === 0}
             title="Descarga un Excel con dos hojas: resumen por empleado y el desglose de cada turno del mes"
           >
-            📥 Descargar Excel
+            <LuDownload size={15} /> Descargar Excel
           </button>
         </div>
         <p style={s.cardDesc}>
@@ -364,12 +377,17 @@ const reentrenar = async () => {
                     <td style={s.td}>{p.horario_esperado_fmt || '--'}</td>
                     <td style={s.td}>
                       <span style={{
-                        ...s.badge,
+                        ...s.badge, ...s.badgeConIcono,
                         background: COLORES_CATEGORIA[p.categoria] + '22',
                         color:      COLORES_CATEGORIA[p.categoria],
                         border:     `1px solid ${COLORES_CATEGORIA[p.categoria]}44`,
                       }}>
-                        {p.categoria === 'Puntual' ? '✓' : p.categoria === 'Tardanza leve' ? '⚠' : '⚠⚠'} {p.categoria}
+                        {p.categoria === 'Puntual'
+                          ? <LuCheck size={13} />
+                          : p.categoria === 'Tardanza leve'
+                            ? <LuTriangleAlert size={13} />
+                            : <LuOctagonAlert size={13} />}
+                        {p.categoria}
                       </span>
                     </td>
                     <td style={s.td}>
@@ -393,7 +411,7 @@ const reentrenar = async () => {
       {/* Estadísticas por empleado */}
       {analisis.empleados_stats && analisis.empleados_stats.length > 0 && (
         <div style={s.card}>
-          <h3 style={s.cardTitulo}>👥 Estadísticas detalladas por empleado</h3>
+          <h3 style={s.cardTitulo}><LuUsers size={18} /> Estadísticas detalladas por empleado</h3>
           <div style={s.tablaWrapper}>
             <table style={s.t}>
               <thead>
@@ -439,7 +457,7 @@ const reentrenar = async () => {
 {datos.comparacion && Object.keys(datos.comparacion).length > 0 && (
   <div style={s.card}>
     <h3 style={s.cardTitulo}>
-      🏆 Comparación de Modelos ML
+      <LuTrophy size={18} /> Comparación de Modelos ML
       <span style={{
         ...s.accuracyBadge,
         background: '#E6F1FB',
@@ -468,17 +486,19 @@ const reentrenar = async () => {
               position: 'absolute', top: 12, right: 12,
               background: '#1D9E75', color: '#fff',
               fontSize: 11, fontWeight: '700',
-              padding: '3px 10px', borderRadius: 20
+              padding: '3px 10px', borderRadius: 20,
+              display: 'flex', alignItems: 'center', gap: 4,
             }}>
-              ✓ SELECCIONADO
+              <LuCheck size={12} /> SELECCIONADO
             </span>
           )}
           <h4 style={{
             fontSize: 15, fontWeight: '600',
             color: modelo.nombre === datos.mejor ? '#04342C' : '#444',
-            marginBottom: 16
+            marginBottom: 16,
+            display: 'flex', alignItems: 'center', gap: 8,
           }}>
-            {i === 0 ? '🌳' : '📈'} {modelo.nombre}
+            {i === 0 ? <LuGitBranch size={17} /> : <LuTrendingUp size={17} />} {modelo.nombre}
           </h4>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
             {[
@@ -530,7 +550,7 @@ const reentrenar = async () => {
 
 {/* Nota metodológica */}
 <div style={s.nota}>
-  <strong>📖 Metodología y Justificación del Modelo</strong>
+  <strong style={{ display:'inline-flex', alignItems:'center', gap:8 }}><LuBookOpen size={17} /> Metodología y Justificación del Modelo</strong>
   <br /><br />
   <strong>Modelos evaluados:</strong> Se entrenaron y compararon dos algoritmos de 
   clasificación supervisada: Árbol de Decisión (DecisionTreeClassifier) y Regresión 
@@ -572,13 +592,14 @@ const s = {
   botonEntrenar:{ padding:'10px 18px', background:'#533AB7', color:'#fff', border:'none', borderRadius:8, fontSize:14, fontWeight:'600', cursor:'pointer' },
   botonRefresh: { padding:'10px 18px', background:'#F5F5F5', color:'#444', border:'1px solid #E0E0E0', borderRadius:8, fontSize:14, cursor:'pointer' },
   botonExportar:{ padding:'8px 16px', background:'#04342C', color:'#fff', border:'none', borderRadius:8, fontSize:13, fontWeight:'600', cursor:'pointer', whiteSpace:'nowrap', flexShrink:0 },
+  botonConIcono:{ display:'flex', alignItems:'center', gap:6 },
   selectorMes:  { padding:'9px 14px', background:'#F5F5F5', color:'#444', border:'1px solid #E0E0E0', borderRadius:8, fontSize:14, cursor:'pointer' },
   botonReintentar:{ marginTop:16, padding:'10px 20px', background:'#04342C', color:'#fff', border:'none', borderRadius:8, cursor:'pointer' },
   errorBox:    { background:'#FCEBEB', borderRadius:12, padding:32, maxWidth:500 },
   code:        { background:'#F5F5F5', padding:'4px 8px', borderRadius:4, fontSize:12, fontFamily:'monospace' },
   grid4:       { display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(160px,1fr))', gap:16, marginBottom:24 },
   kpi:         { background:'#fff', borderRadius:12, padding:20, borderTop:'4px solid', boxShadow:'0 1px 4px rgba(0,0,0,0.08)' },
-  kpiIcono:    { fontSize:24, marginBottom:8 },
+  kpiIcono:    { width:40, height:40, borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:12 },
   kpiValor:    { fontSize:32, fontWeight:'bold' },
   kpiLabel:    { fontSize:13, color:'#888', marginTop:4 },
   grid2:       { display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:24 },
@@ -593,6 +614,7 @@ const s = {
   th:          { padding:'10px 14px', textAlign:'left', fontSize:11, color:'#888', fontWeight:'600', textTransform:'uppercase', letterSpacing:'0.05em', whiteSpace:'nowrap' },
   td:          { padding:'12px 14px', fontSize:14, color:'#222' },
   badge:       { padding:'5px 12px', borderRadius:20, fontSize:12, fontWeight:'600' },
+  badgeConIcono:{ display:'inline-flex', alignItems:'center', gap:4 },
   barraConfianza:{ display:'flex', alignItems:'center', gap:8, minWidth:120 },
   barraRelleno:{ height:8, borderRadius:4, transition:'width 0.3s', minWidth:2 },
   barraTexto:  { fontSize:12, color:'#666', whiteSpace:'nowrap' },
