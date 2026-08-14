@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { } from 'recharts';
+import { LuClock, LuActivity, LuUsers, LuMapPin } from 'react-icons/lu';
 import api from '../services/api';
 
 export default function DashboardPage() {
@@ -29,10 +30,10 @@ export default function DashboardPage() {
   if (cargando) return <div style={s.cargando}>Cargando dashboard...</div>;
 
   const tarjetas = [
-    { titulo:'Turnos hoy',       valor: resumen?.turnos_hoy      || 0, color:'#1D9E75', icono:'🕐' },
-    { titulo:'Activos ahora',    valor: resumen?.turnos_activos  || 0, color:'#185FA5', icono:'🟢' },
-    { titulo:'Empleados',        valor: resumen?.total_empleados || 0, color:'#533AB7', icono:'👥' },
-    { titulo:'Sedes activas',    valor: resumen?.total_sedes     || 0, color:'#BA7517', icono:'📍' },
+    { titulo:'Turnos hoy',       valor: resumen?.turnos_hoy      || 0, color:'#1D9E75', Icono: LuClock },
+    { titulo:'Activos ahora',    valor: resumen?.turnos_activos  || 0, color:'#185FA5', Icono: LuActivity },
+    { titulo:'Empleados',        valor: resumen?.total_empleados || 0, color:'#533AB7', Icono: LuUsers },
+    { titulo:'Sedes activas',    valor: resumen?.total_sedes     || 0, color:'#BA7517', Icono: LuMapPin },
   ];
 
   return (
@@ -50,7 +51,9 @@ export default function DashboardPage() {
       <div style={s.grid4}>
         {tarjetas.map((t, i) => (
           <div key={i} style={{ ...s.tarjeta, borderTopColor: t.color }}>
-            <div style={s.tarjetaIcono}>{t.icono}</div>
+            <div style={{ ...s.tarjetaIcono, background: `${t.color}1A`, color: t.color }}>
+              <t.Icono size={22} strokeWidth={2} />
+            </div>
             <div style={{ ...s.tarjetaValor, color: t.color }}>{t.valor}</div>
             <div style={s.tarjetaTitulo}>{t.titulo}</div>
           </div>
@@ -125,7 +128,7 @@ const s = {
     padding:20, borderTop:'4px solid',
     boxShadow:'0 1px 4px rgba(0,0,0,0.08)',
   },
-  tarjetaIcono: { fontSize:28, marginBottom:8 },
+  tarjetaIcono: { width:44, height:44, borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:12 },
   tarjetaValor: { fontSize:36, fontWeight:'bold' },
   tarjetaTitulo:{ fontSize:13, color:'#888', marginTop:4 },
   seccion:   { background:'#fff', borderRadius:12, padding:24, boxShadow:'0 1px 4px rgba(0,0,0,0.08)' },
